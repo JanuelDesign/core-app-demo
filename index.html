@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CORE App Demo</title>
+<meta name="description" content="CORE · Private label flooring platform demo">
+<meta name="theme-color" content="#141317">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Albert+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: dark product rail on the left (desktop) / bottom bar (mobile); warm cream workspace; one sand accent for "your brand" moments. */
+:root{
+  --ink:#141317; --char:#2A262C; --sand:#D9C6A5; --oat:#B9A27C; --bronze:#8B7658;
+  --linen:#F3E8D2; --cream:#F6F2EA; --white:#FFFFFF; --line:#E7E0D3; --muted:#6F675E;
+  --ok:#3F7D58; --okbg:#E5F1E8; --warn:#9A6A12; --warnbg:#F8EDD5;
+  --display:'Outfit',ui-sans-serif,system-ui,sans-serif; --body:'Albert Sans',ui-sans-serif,system-ui,sans-serif;
+  --r:18px; --r-sm:12px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--display);font-weight:700;margin:0;line-height:1.15;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:32px} h2{font-size:22px} h3{font-size:17px}
+button{font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
+input,select{font:inherit;color:var(--ink)}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze)}
+
+/* ---------- auth ---------- */
+#auth{min-height:100%;display:grid;grid-template-columns:1.05fr 1fr}
+.auth-art{background:var(--ink);color:var(--cream);padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.auth-art .planks{position:relative;margin:24px -90px -90px;height:300px;flex:none;display:grid;grid-template-columns:repeat(6,1fr);gap:6px;transform:rotate(-6deg)}
+.auth-art .planks div{border-radius:6px;background-size:cover}
+.auth-art h1{font-size:46px;max-width:12ch;position:relative}
+.auth-art p{max-width:38ch;color:#CFC6B8;position:relative}
+.auth-form{display:flex;align-items:center;justify-content:center;padding:32px 20px}
+.auth-card{width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--linen);border-radius:999px;padding:4px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:9px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(20,19,23,.08)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:600}
+.field input,.field select{border:1px solid var(--line);background:var(--white);border-radius:var(--r-sm);padding:12px 14px}
+.btn{text-decoration:none;border:0;border-radius:999px;padding:12px 20px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s}
+.btn:active{transform:scale(.98)}
+.btn-dark{background:var(--ink);color:var(--cream)}
+.btn-sand{background:var(--sand);color:var(--ink)}
+.btn-ghost{background:var(--white);color:var(--ink);border:1px solid var(--line)}
+.btn-sm{padding:8px 14px;font-size:14px}
+.social{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.or:before,.or:after{content:"";flex:1;height:1px;background:var(--line)}
+.note{font-size:13px;color:var(--muted)}
+
+/* ---------- app shell ---------- */
+#app{display:none;height:100%;grid-template-columns:248px 1fr}
+#app.on{display:grid}
+.rail{background:var(--ink);color:var(--cream);padding:26px 16px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh}
+.rail .logo{padding:0 10px}
+.rail .logo svg{width:132px;height:auto;display:block}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;color:#BDB4A6;text-decoration:none;font-weight:500}
+.nav a svg{width:20px;height:20px;flex:none}
+.nav a:hover{background:var(--char);color:var(--cream)}
+.nav a[aria-current="page"]{background:var(--cream);color:var(--ink)}
+.nav .badge{margin-left:auto;background:var(--sand);color:var(--ink);font-size:11px;font-weight:700;border-radius:999px;padding:1px 7px}
+.rail-foot{margin-top:auto;background:var(--char);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.rail-foot .who{display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--sand);color:var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700}
+.rail-foot small{color:#BDB4A6}
+main{overflow:auto;height:100vh}
+.top{display:flex;align-items:center;gap:12px;padding:20px 32px;position:sticky;top:0;background:rgba(246,242,234,.92);backdrop-filter:blur(8px);z-index:5;border-bottom:1px solid transparent}
+.search{flex:1;max-width:420px;display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--line);border-radius:999px;padding:9px 14px}
+.search input{border:0;outline:0;flex:1;background:transparent}
+.top .spacer{flex:1}
+.iconbtn{color:var(--ink);width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--white);display:grid;place-items:center;position:relative}
+.iconbtn svg{width:19px;height:19px}
+.dot{position:absolute;top:-3px;right:-3px;background:var(--ink);color:var(--cream);font-size:11px;font-weight:700;min-width:19px;height:19px;border-radius:999px;display:grid;place-items:center;padding:0 5px}
+.lang{display:flex;border:1px solid var(--line);border-radius:999px;background:var(--white);padding:3px}
+.lang button{border:0;background:transparent;border-radius:999px;padding:5px 10px;font-size:13px;font-weight:600;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--cream)}
+.view{padding:8px 32px 48px;display:none;flex-direction:column;gap:24px}
+.view.on{display:flex}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;background:var(--linen);color:var(--char);white-space:nowrap}
+.pill.ok{background:var(--okbg);color:var(--ok)}
+.pill.warn{background:var(--warnbg);color:var(--warn)}
+.pill.dark{background:var(--ink);color:var(--cream)}
+
+/* home */
+.hero{background:var(--ink);color:var(--cream);border-radius:24px;padding:28px;display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:center}
+.hero p{color:#CFC6B8;margin:8px 0 18px;max-width:46ch}
+.steps{display:flex;gap:6px;margin-top:6px}
+.steps div{flex:1;height:6px;border-radius:999px;background:var(--char)}
+.steps div.done{background:var(--sand)}
+.steps-l{display:flex;justify-content:space-between;font-size:12px;color:#BDB4A6;margin-top:8px}
+.task{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.task:first-of-type{border-top:0}
+.task .ic{width:40px;height:40px;border-radius:12px;background:var(--linen);display:grid;place-items:center;flex:none}
+.task .ic svg{width:19px;height:19px}
+.task .grow{flex:1;min-width:0}
+.stat b{font-family:var(--display);font-size:30px;display:block}
+.stat span{font-size:13px;color:var(--muted)}
+
+/* brands */
+.brandcard{display:flex;flex-direction:column;gap:14px;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.brandcard:hover{transform:translateY(-2px);box-shadow:0 10px 30px -18px rgba(20,19,23,.4)}
+.brandlogo{height:120px;border-radius:14px;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:.06em}
+.newcard{border:1.5px dashed var(--oat);background:transparent;display:grid;place-items:center;text-align:center;min-height:250px;color:var(--bronze);font-weight:600}
+.swatches{display:flex;gap:6px}
+.swatches span{width:30px;height:30px;border-radius:8px;background-size:cover}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--ink)}
+.progress{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.progress div{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.progress div:before{content:"";height:6px;border-radius:999px;background:var(--line)}
+.progress div.done{color:var(--ink)} .progress div.done:before{background:var(--ink)}
+.progress div.now{color:var(--bronze)} .progress div.now:before{background:var(--sand)}
+.row{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.thumb{width:56px;height:56px;border-radius:12px;background-size:cover;flex:none}
+.row .grow{flex:1;min-width:0}
+
+/* catalog */
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--white);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;color:var(--char)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.prod{background:var(--white);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.prod .img{aspect-ratio:4/3;background-size:cover;background-position:center;position:relative}
+.prod .img .pill{position:absolute;top:12px;left:12px}
+.prod .body{padding:16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.prod .price{display:flex;align-items:baseline;justify-content:space-between;margin-top:auto;padding-top:10px}
+.prod .price b{font-family:var(--display);font-size:20px}
+.prod .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 16px}
+
+/* drawer / modal */
+.scrim{position:fixed;inset:0;background:rgba(20,19,23,.45);display:none;z-index:20}
+.scrim.on{display:block}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(520px,100%);background:var(--cream);z-index:21;transform:translateX(100%);transition:transform .28s ease;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.drawer .dh{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}
+.drawer .db{padding:22px;overflow:auto;display:flex;flex-direction:column;gap:18px;flex:1}
+.drawer .df{padding:16px 22px;border-top:1px solid var(--line);background:var(--white);display:flex;gap:10px}
+.drawer .df .btn{flex:1}
+.bigimg{aspect-ratio:16/10;border-radius:var(--r);background-size:cover}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.specs div{background:var(--white);padding:10px 12px}
+.specs small{display:block;color:var(--muted);font-size:12px}
+.specs b{font-weight:600}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tiers div{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.tiers div.best{border-color:var(--ink)}
+.tiers b{display:block;font-family:var(--display);font-size:18px}
+.tiers small{color:var(--muted);font-size:12px}
+.modal{position:fixed;inset:0;display:none;place-items:center;z-index:22;padding:16px}
+.modal.on{display:grid}
+.mbox{background:var(--cream);border-radius:24px;width:min(560px,100%);max-height:92vh;overflow:auto;padding:26px;display:flex;flex-direction:column;gap:18px}
+.wiz-steps{display:flex;gap:6px}
+.wiz-steps span{flex:1;height:5px;border-radius:999px;background:var(--line)}
+.wiz-steps span.on{background:var(--ink)}
+.opt{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt button{border:1.5px solid var(--line);background:var(--white);border-radius:14px;padding:16px;text-align:left;display:flex;flex-direction:column;gap:4px}
+.opt button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.opt small{color:var(--muted)}
+.palettes button{flex-direction:row;align-items:center;gap:10px}
+.palettes i{display:flex;gap:3px}
+.palettes i b{width:18px;height:18px;border-radius:5px;display:block}
+
+/* quote */
+.qgrid{display:grid;grid-template-columns:1.6fr 1fr;gap:20px;align-items:start}
+.qty{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;background:var(--white)}
+.qty button{border:0;background:none;width:32px;height:32px;font-size:17px}
+.qty span{min-width:28px;text-align:center;font-weight:600}
+.sum div{display:flex;justify-content:space-between;padding:6px 0}
+.sum .tot{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;font-family:var(--display);font-size:22px;font-weight:700}
+.calc{background:var(--linen);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.calc input{width:110px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--white)}
+
+/* orders */
+.timeline{display:flex;flex-direction:column;gap:0;margin-top:6px}
+.tl{display:grid;grid-template-columns:28px 1fr auto;gap:12px;padding-bottom:18px;position:relative}
+.tl:before{content:"";position:absolute;left:13px;top:26px;bottom:0;width:2px;background:var(--line)}
+.tl:last-child:before{display:none}
+.tl i{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:var(--white);display:grid;place-items:center}
+.tl.done i{background:var(--ink);border-color:var(--ink)}
+.tl.done i:after{content:"";width:8px;height:5px;border-left:2px solid var(--cream);border-bottom:2px solid var(--cream);transform:rotate(-45deg) translate(1px,-1px)}
+.tl.now i{border-color:var(--sand);background:var(--sand)}
+.tl small{color:var(--muted)}
+.map{height:150px;border-radius:14px;background:linear-gradient(135deg,#EFE6D6,#E6DAC4);position:relative;overflow:hidden}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,120px);background:var(--ink);color:var(--cream);padding:12px 18px;border-radius:999px;font-weight:600;z-index:40;transition:transform .3s;display:flex;gap:10px;align-items:center}
+.toast.on{transform:translate(-50%,0)}
+.bottomnav{display:none}
+.chat{position:fixed;right:24px;bottom:24px;z-index:15;background:var(--white);border:1px solid var(--line);border-radius:999px;padding:8px 16px 8px 8px;display:flex;align-items:center;gap:10px;box-shadow:0 10px 30px -16px rgba(20,19,23,.5);font-weight:600}
+.demo-flag{z-index:50;background:var(--sand);color:var(--ink);font-size:12px;font-weight:700;border-radius:999px;padding:4px 12px;letter-spacing:.06em}
+
+/* ---------- gradients & glows ---------- */
+body{background:radial-gradient(1200px 600px at 100% -10%,rgba(217,198,165,.35),transparent 60%),radial-gradient(900px 500px at -10% 110%,rgba(185,162,124,.18),transparent 60%),var(--cream);background-attachment:fixed}
+.top{background:rgba(246,242,234,.72)}
+.auth-art{background:radial-gradient(600px 380px at 85% 10%,rgba(217,198,165,.28),transparent 65%),radial-gradient(500px 400px at 0% 100%,rgba(139,118,88,.45),transparent 70%),linear-gradient(160deg,#1d1b21,#141317 60%)}
+.rail{background:radial-gradient(260px 200px at 20% 0%,rgba(217,198,165,.18),transparent 70%),linear-gradient(180deg,#1c1a20,#141317 55%,#100f12)}
+.nav a[aria-current="page"]{background:linear-gradient(135deg,#FBF8F2,#E9DCC3);box-shadow:0 0 0 1px rgba(217,198,165,.5),0 8px 26px -8px rgba(217,198,165,.55)}
+.nav a.qo-nav{margin:4px 0 10px;background:linear-gradient(135deg,rgba(217,198,165,.22),rgba(139,118,88,.12));color:var(--sand);box-shadow:inset 0 0 0 1px rgba(217,198,165,.35)}
+.nav a.qo-nav:hover{background:linear-gradient(135deg,rgba(217,198,165,.32),rgba(139,118,88,.2));color:var(--cream)}
+.btn-dark{background:linear-gradient(180deg,#34303a,#141317);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 10px 22px -12px rgba(20,19,23,.75)}
+.btn-dark:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 0 3px rgba(217,198,165,.35),0 12px 26px -12px rgba(20,19,23,.8)}
+.btn-sand{background:linear-gradient(135deg,#F0E4CC,#C9B088);box-shadow:0 0 28px -4px rgba(217,198,165,.6),inset 0 1px 0 rgba(255,255,255,.5)}
+.btn-glow{background:linear-gradient(135deg,#F0E4CC,#C9B088);color:var(--ink);box-shadow:0 0 0 1px rgba(255,255,255,.4) inset,0 8px 30px -6px rgba(201,176,136,.75)}
+.card{background:linear-gradient(180deg,#FFFFFF,#FCFAF6);box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 18px 40px -32px rgba(20,19,23,.35)}
+.stat b{background:linear-gradient(120deg,var(--ink),var(--bronze));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero{position:relative;overflow:hidden;background:radial-gradient(520px 320px at 88% 0%,rgba(217,198,165,.42),transparent 65%),radial-gradient(420px 300px at 0% 120%,rgba(139,118,88,.55),transparent 70%),linear-gradient(135deg,#221f26,#141317 70%);box-shadow:0 30px 60px -36px rgba(20,19,23,.7)}
+.hero:after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(217,198,165,.18);pointer-events:none}
+.steps div.done{background:linear-gradient(90deg,#B9A27C,#F0E4CC);box-shadow:0 0 12px rgba(217,198,165,.6)}
+.prod{transition:transform .18s,box-shadow .18s}
+.prod:hover{transform:translateY(-3px);box-shadow:0 0 0 1px rgba(217,198,165,.7),0 22px 40px -24px rgba(139,118,88,.7)}
+.brandcard:hover{box-shadow:0 0 0 1px rgba(217,198,165,.7),0 22px 40px -24px rgba(139,118,88,.7)}
+.qo-card{background:radial-gradient(400px 220px at 100% 0%,rgba(217,198,165,.35),transparent 70%),linear-gradient(135deg,#221f26,#141317);color:var(--cream);border:0;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.qo-card p{color:#CFC6B8;margin:4px 0 0}
+.qo-card .grow{flex:1;min-width:220px}
+
+/* ---------- quick order (step by step) ---------- */
+#qo{position:fixed;inset:0;z-index:30;display:none;color:var(--cream);background:#100F12;overflow:hidden}
+#qo.on{display:flex;flex-direction:column}
+#qo .orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;pointer-events:none}
+#qo .o1{width:520px;height:520px;background:#8B7658;top:-160px;right:-120px;animation:drift 14s ease-in-out infinite alternate}
+#qo .o2{width:420px;height:420px;background:#D9C6A5;bottom:-200px;left:-120px;opacity:.28;animation:drift 18s ease-in-out infinite alternate-reverse}
+@keyframes drift{to{transform:translate(-60px,50px) scale(1.1)}}
+.qo-top{position:relative;display:flex;align-items:center;gap:16px;padding:20px 32px}
+.qo-top .lg{width:110px}
+.qo-bar{position:relative;height:4px;background:rgba(255,255,255,.08);margin:0 32px;border-radius:999px;overflow:hidden}
+.qo-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#8B7658,#F0E4CC);box-shadow:0 0 16px rgba(240,228,204,.8);border-radius:999px;transition:width .35s ease}
+.qo-main{position:relative;flex:1;display:grid;grid-template-columns:1fr 340px;gap:40px;padding:36px 32px 24px;overflow:auto;max-width:1240px;width:100%;margin:0 auto}
+.qo-q{display:flex;flex-direction:column;gap:18px;max-width:720px;animation:qin .35s ease both}
+@keyframes qin{from{opacity:0;transform:translateY(14px)}}
+.qo-q .k{color:var(--oat);font-weight:600;font-size:14px;letter-spacing:.12em;text-transform:uppercase}
+.qo-q h2{font-size:38px}
+.qo-q .hint{color:#BDB4A6;margin:-6px 0 4px}
+.qo-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.qo-opt{position:relative;text-align:left;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));color:var(--cream);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px;backdrop-filter:blur(8px);transition:border-color .15s,box-shadow .15s,transform .15s}
+.qo-opt:hover{border-color:rgba(217,198,165,.55);transform:translateY(-2px)}
+.qo-opt[aria-pressed="true"]{border-color:var(--sand);background:linear-gradient(180deg,rgba(217,198,165,.22),rgba(217,198,165,.06));box-shadow:0 0 0 1px var(--sand),0 0 34px -6px rgba(217,198,165,.55)}
+.qo-opt small{color:#BDB4A6}
+.qo-opt .kbd{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:1px 6px;color:#BDB4A6}
+.qo-opt .sw{height:70px;border-radius:12px;background-size:cover;margin-bottom:4px}
+.qo-opt .tone{display:flex;gap:4px}.qo-opt .tone b{flex:1;height:34px;border-radius:8px}
+.qo-qty{display:flex;flex-direction:column;gap:10px}
+.qo-line{display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);border-radius:16px;padding:12px}
+.qo-line .thumb{width:56px;height:56px}
+.qo-line input{width:120px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);color:var(--cream);border-radius:10px;padding:9px 10px}
+.qo-line .pre{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.qo-line .pre button{border:1px solid rgba(255,255,255,.18);background:transparent;color:#CFC6B8;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
+.qo-line .pre button:hover{border-color:var(--sand);color:var(--cream)}
+.qo-days{display:flex;gap:8px;flex-wrap:wrap}
+.qo-days button{border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:var(--cream);border-radius:14px;padding:10px 14px;font-weight:600;min-width:84px}
+.qo-days button[aria-pressed="true"]{border-color:var(--sand);box-shadow:0 0 22px -6px rgba(217,198,165,.7);background:rgba(217,198,165,.16)}
+.qo-days small{display:block;color:#BDB4A6;font-weight:500}
+.qo-note{border-radius:14px;padding:12px 14px;background:rgba(217,198,165,.1);border:1px solid rgba(217,198,165,.25);color:#E7DCC8;font-size:14px}
+.qo-side{align-self:start;position:sticky;top:0;border-radius:22px;padding:20px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(12px);display:flex;flex-direction:column;gap:10px}
+.qo-side .l{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:#CFC6B8}
+.qo-side .l b{color:var(--cream);font-weight:600;text-align:right}
+.qo-side .t{border-top:1px solid rgba(255,255,255,.12);padding-top:12px;margin-top:4px;display:flex;justify-content:space-between;font-family:var(--display);font-size:24px;font-weight:700}
+.qo-foot{position:relative;display:flex;align-items:center;gap:12px;padding:16px 32px 24px;max-width:1240px;width:100%;margin:0 auto}
+.qo-foot .spacer{flex:1}
+.qo-mini{display:none;font-family:var(--display);font-weight:700;font-size:18px;color:var(--sand)}
+.qo-foot .enter{color:#8F877C;font-size:13px}
+.qo-review{display:grid;gap:10px}
+.qo-review .row{border-color:rgba(255,255,255,.1)}
+.qo-review .note{color:#BDB4A6}
+.qo-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn-line{background:transparent;color:var(--cream);border:1px solid rgba(255,255,255,.25)}
+.btn-line:hover{border-color:var(--sand)}
+.bn-qo{position:relative}
+.bn-qo span.fab{width:50px;height:50px;margin-top:-26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#F0E4CC,#C9B088);color:var(--ink);box-shadow:0 0 0 5px var(--ink),0 0 26px rgba(217,198,165,.7)}
+.top .qo-top-btn{white-space:nowrap}
+@media (prefers-reduced-motion:reduce){#qo .orb{animation:none}.qo-q{animation:none}}
+
+@media (max-width:1100px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.qgrid{grid-template-columns:1fr}}
+@media (max-width:820px){
+  #auth{grid-template-columns:1fr}
+  .auth-art{min-height:300px;padding:28px}
+  .auth-art h1{font-size:34px}
+  #app.on{display:block}
+  .rail{display:none}
+  main{height:auto;overflow:visible;padding-bottom:84px}
+  .top{padding:14px 16px}
+  .top .search{display:none}
+  .top .mlogo{display:block!important}
+  .view{padding:4px 16px 32px}
+  h1{font-size:26px}
+  .hero{grid-template-columns:1fr;padding:22px}
+  .g2,.g3{grid-template-columns:1fr}
+  .g4{grid-template-columns:1fr 1fr}
+  .bottomnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;background:var(--ink);padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:12}
+  .bottomnav a{display:flex;flex-direction:column;align-items:center;gap:3px;color:#BDB4A6;text-decoration:none;font-size:11px;font-weight:600;padding:6px 0;border-radius:12px}
+  .bottomnav a svg{width:21px;height:21px}
+  .bottomnav a[aria-current="page"]{color:var(--ink);background:var(--cream)}
+  .bottomnav a.bn-qo[aria-current]{background:none}
+  .top .qo-top-btn{display:none}
+  .qo-main{grid-template-columns:1fr;padding:20px 16px}
+  .qo-side{display:none}
+  .qo-mini{display:inline-flex!important}
+  .qo-top{padding:14px 16px}.qo-bar{margin:0 16px}.qo-foot{padding:12px 16px 20px}
+  .qo-q h2{font-size:28px}
+  .qo-opts{grid-template-columns:1fr 1fr}
+  .qo-line{grid-template-columns:48px 1fr}.qo-line>b{grid-column:2}
+  .qo-foot .enter{display:none}
+  .chat{bottom:90px;right:14px;padding:8px}
+  .chat span{display:none}
+  .progress div{font-size:10px}
+}
+@media (max-width:420px){.g4{grid-template-columns:1fr}.social{grid-template-columns:1fr}.opt{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH ============ -->
+<section id="auth">
+  <div class="auth-art">
+    <div style="position:relative;width:170px"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" aria-label="CORE" role="img" viewBox="0 0 639.65 292.32">
+  
+  <g transform="translate(41.6 0)">
+  <path d="M80.60000000000001 191.39999999999998Q64.8 191.39999999999998 51.3 185.89999999999998Q37.800000000000004 180.39999999999998 27.700000000000003 170.39999999999998Q17.6 160.39999999999998 12.0 147.09999999999997Q6.4 133.79999999999998 6.4 118.39999999999999Q6.4 102.99999999999999 12.0 89.69999999999999Q17.6 76.39999999999998 27.6 66.59999999999998Q37.6 56.79999999999998 51.10000000000001 51.29999999999998Q64.60000000000001 45.79999999999998 80.4 45.79999999999998Q97.2 45.79999999999998 110.30000000000001 51.19999999999999Q123.4 56.599999999999994 133.20000000000002 65.99999999999999L112.2 87.19999999999999Q106.60000000000001 81.19999999999999 98.70000000000002 77.79999999999998Q90.80000000000001 74.39999999999998 80.4 74.39999999999998Q71.2 74.39999999999998 63.5 77.49999999999997Q55.800000000000004 80.59999999999998 50.300000000000004 86.39999999999998Q44.800000000000004 92.19999999999999 41.7 100.39999999999998Q38.6 108.59999999999998 38.6 118.39999999999999Q38.6 128.39999999999998 41.7 136.59999999999997Q44.800000000000004 144.79999999999998 50.300000000000004 150.59999999999997Q55.800000000000004 156.39999999999998 63.5 159.59999999999997Q71.2 162.79999999999998 80.4 162.79999999999998Q91.2 162.79999999999998 99.2 159.39999999999998Q107.2 156.0 113.0 150.0L134.20000000000002 171.2Q124.0 180.6 110.9 186.0Q97.80000000000001 191.39999999999998 80.60000000000001 191.39999999999998Z" fill="#F6F2EA"/>
+  <path d="M220.22 45.18H220.22A73.42 73.42 0 0 1 281.06 77.48H159.39A73.42 73.42 0 0 1 220.22 45.18Z" fill="#F6F2EA"/>
+  <path d="M154.29 86.29H286.16A73.42 73.42 0 0 1 293.28 111.26H147.17A73.42 73.42 0 0 1 154.29 86.29Z" fill="#F6F2EA"/>
+  <path d="M146.81 120.07H293.63A73.42 73.42 0 0 1 276.64 165.59H163.81A73.42 73.42 0 0 1 146.81 120.07Z" fill="#D9C6A5"/>
+  <path d="M172.5 174.4H267.94A73.42 73.42 0 0 1 220.22 192.02H220.22A73.42 73.42 0 0 1 172.5 174.4Z" fill="#F6F2EA"/>
+  <path d="M320.248 189.2V47.99999999999997H377.84799999999996Q391.84799999999996 47.99999999999997 402.448 53.29999999999998Q413.048 58.599999999999994 419.048 67.99999999999999Q425.048 77.39999999999998 425.048 89.59999999999998Q425.048 101.99999999999999 419.048 111.29999999999998Q413.048 120.59999999999998 402.248 125.79999999999998Q396.248 128.79999999999998 389.048 130.0L434.248 189.2H397.048L354.84799999999996 131.0H351.64799999999997V189.2ZM351.64799999999997 72.39999999999998V107.79999999999998H374.048Q383.448 107.79999999999998 388.548 102.99999999999999Q393.64799999999997 98.19999999999999 393.64799999999997 89.99999999999999Q393.64799999999997 82.39999999999998 388.64799999999997 77.39999999999998Q383.64799999999997 72.39999999999998 374.248 72.39999999999998ZM448.648 189.2V47.99999999999997H549.048V74.99999999999999H480.048V103.99999999999999H543.048V130.2H480.048V162.0H550.048V189.2Z" fill="#F6F2EA"/>
+  </g>
+  <g transform="translate(48 244.32)"><path d="M7.287000000000001 -7.896000000000001Q8.211 -7.896000000000001 8.7885 -8.1795Q9.366000000000001 -8.463000000000001 9.66 -8.9985Q9.954 -9.534 9.954 -10.269Q9.954 -11.382000000000001 9.303 -12.0015Q8.652000000000001 -12.621 7.287000000000001 -12.621H4.032V-7.896000000000001ZM12.474 -10.269Q12.474 -9.471 12.201 -8.694Q11.928 -7.917000000000001 11.319 -7.2555000000000005Q10.71 -6.594 9.7125 -6.205500000000001Q8.715 -5.817 7.287000000000001 -5.817H4.032V0.0H1.5330000000000001V-14.700000000000001H7.287000000000001Q9.051 -14.700000000000001 10.1955 -14.101500000000001Q11.34 -13.503 11.907 -12.4845Q12.474 -11.466000000000001 12.474 -10.269ZM33.56100000000001 -14.700000000000001Q35.325 -14.700000000000001 36.469500000000004 -14.101500000000001Q37.614000000000004 -13.503 38.181000000000004 -12.4845Q38.748000000000005 -11.466000000000001 38.748000000000005 -10.269Q38.748000000000005 -9.471 38.47500000000001 -8.694Q38.202000000000005 -7.917000000000001 37.593 -7.2555000000000005Q36.98400000000001 -6.594 35.99700000000001 -6.216Q35.724000000000004 -6.111000000000001 35.43000000000001 -6.027L39.063 0.0H36.24900000000001L32.868 -5.817H30.306000000000004V0.0H27.807000000000006V-14.700000000000001ZM36.22800000000001 -10.269Q36.22800000000001 -11.361 35.577000000000005 -11.991Q34.926 -12.621 33.56100000000001 -12.621H30.306000000000004V-7.896000000000001H33.56100000000001Q34.48500000000001 -7.896000000000001 35.06250000000001 -8.1795Q35.64000000000001 -8.463000000000001 35.93400000000001 -8.9985Q36.22800000000001 -9.534 36.22800000000001 -10.269ZM54.375000000000014 -14.700000000000001H56.87400000000001V0.0H54.375000000000014ZM83.14800000000002 -14.700000000000001H85.79400000000003L80.31300000000002 0.0H77.39400000000002L71.93400000000003 -14.700000000000001H74.58000000000003L78.86400000000002 -2.5410000000000004ZM103.31100000000002 -3.591 102.05100000000003 0.0H99.48900000000003L104.69700000000003 -14.700000000000001H108.93900000000002L114.16800000000003 0.0H111.60600000000002L110.36700000000003 -3.591ZM107.21700000000003 -12.621H106.46100000000003L104.02500000000003 -5.649H109.63200000000003ZM128.09400000000002 -14.700000000000001H139.64400000000003V-12.621H135.12900000000002V0.0H132.63000000000002V-12.621H128.09400000000002ZM164.973 -12.621H157.43400000000003V-8.484H163.08300000000003V-6.405H157.43400000000003V-2.079H164.973V0.0H154.935V-14.700000000000001H164.973ZM202.02300000000002 -14.700000000000001V-2.079H208.61700000000002V0.0H199.524V-14.700000000000001ZM226.13400000000001 -3.591 224.874 0.0H222.312L227.52 -14.700000000000001H231.762L236.991 0.0H234.429L233.19 -3.591ZM230.04000000000002 -12.621H229.284L226.848 -5.649H232.455ZM260.36699999999996 -10.542Q260.36699999999996 -11.529 259.7265 -12.075Q259.086 -12.621 257.931 -12.621H254.172V-8.484H257.931Q259.086 -8.484 259.7265 -9.0195Q260.36699999999996 -9.555 260.36699999999996 -10.542ZM251.67299999999997 0.0V-14.700000000000001H258.183Q259.73699999999997 -14.700000000000001 260.77649999999994 -14.175Q261.816 -13.65 262.3515 -12.778500000000001Q262.887 -11.907 262.887 -10.857000000000001Q262.887 -9.891 262.53 -9.219000000000001Q262.173 -8.547 261.56399999999996 -8.148Q260.955 -7.7490000000000006 260.199 -7.581V-7.413Q261.102 -7.287000000000001 261.79499999999996 -6.888000000000001Q262.488 -6.489000000000001 262.866 -5.7540000000000004Q263.24399999999997 -5.019 263.24399999999997 -3.927Q263.24399999999997 -2.814 262.6665 -1.9215Q262.089 -1.0290000000000001 261.01800000000003 -0.5145000000000001Q259.947 0.0 258.45599999999996 0.0ZM254.172 -2.079H258.204Q259.401 -2.079 260.073 -2.625Q260.745 -3.1710000000000003 260.745 -4.2Q260.745 -5.292000000000001 260.02049999999997 -5.859Q259.296 -6.426 258.12 -6.426H254.172ZM288.846 -12.621H281.30699999999996V-8.484H286.95599999999996V-6.405H281.30699999999996V-2.079H288.846V0.0H278.808V-14.700000000000001H288.846ZM307.01399999999995 -14.700000000000001V-2.079H313.60799999999995V0.0H304.515V-14.700000000000001ZM347.55 -14.700000000000001H357.588V-12.621H350.049V-8.484H355.698V-6.405H350.049V0.0H347.55ZM375.37800000000004 -14.700000000000001V-2.079H381.97200000000004V0.0H372.8790000000001V-14.700000000000001ZM403.75200000000007 0.14700000000000002Q402.1980000000001 0.14700000000000002 400.8330000000001 -0.399Q399.4680000000001 -0.9450000000000001 398.44950000000006 -1.9425000000000003Q397.4310000000001 -2.9400000000000004 396.85350000000005 -4.3155Q396.27600000000007 -5.691000000000001 396.27600000000007 -7.3500000000000005Q396.27600000000007 -8.988000000000001 396.85350000000005 -10.363500000000002Q397.4310000000001 -11.739 398.44950000000006 -12.747Q399.4680000000001 -13.755 400.8330000000001 -14.301000000000002Q402.1980000000001 -14.847000000000001 403.75200000000007 -14.847000000000001Q405.3060000000001 -14.847000000000001 406.66050000000007 -14.301000000000002Q408.0150000000001 -13.755 409.0335000000001 -12.747Q410.0520000000001 -11.739 410.6295000000001 -10.363500000000002Q411.2070000000001 -8.988000000000001 411.2070000000001 -7.3500000000000005Q411.2070000000001 -5.691000000000001 410.6295000000001 -4.3155Q410.0520000000001 -2.9400000000000004 409.0335000000001 -1.9425000000000003Q408.0150000000001 -0.9450000000000001 406.66050000000007 -0.399Q405.3060000000001 0.14700000000000002 403.75200000000007 0.14700000000000002ZM403.75200000000007 -1.9740000000000002Q405.18000000000006 -1.9740000000000002 406.29300000000006 -2.6355000000000004Q407.40600000000006 -3.297 408.03600000000006 -4.5045Q408.66600000000005 -5.712000000000001 408.66600000000005 -7.3500000000000005Q408.66600000000005 -9.009 408.03600000000006 -10.206Q407.40600000000006 -11.403 406.29300000000006 -12.0645Q405.18000000000006 -12.726 403.75200000000007 -12.726Q402.32400000000007 -12.726 401.21100000000007 -12.0645Q400.09800000000007 -11.403 399.4575000000001 -10.206Q398.81700000000006 -9.009 398.81700000000006 -7.3500000000000005Q398.81700000000006 -5.712000000000001 399.4575000000001 -4.5045Q400.09800000000007 -3.297 401.21100000000007 -2.6355000000000004Q402.32400000000007 -1.9740000000000002 403.75200000000007 -1.9740000000000002ZM433.21800000000013 0.14700000000000002Q431.66400000000016 0.14700000000000002 430.29900000000015 -0.399Q428.93400000000014 -0.9450000000000001 427.9155000000002 -1.9425000000000003Q426.89700000000016 -2.9400000000000004 426.3195000000002 -4.3155Q425.74200000000013 -5.691000000000001 425.74200000000013 -7.3500000000000005Q425.74200000000013 -8.988000000000001 426.3195000000002 -10.363500000000002Q426.89700000000016 -11.739 427.9155000000002 -12.747Q428.93400000000014 -13.755 430.29900000000015 -14.301000000000002Q431.66400000000016 -14.847000000000001 433.21800000000013 -14.847000000000001Q434.77200000000016 -14.847000000000001 436.1265000000002 -14.301000000000002Q437.48100000000017 -13.755 438.4995000000001 -12.747Q439.51800000000014 -11.739 440.09550000000013 -10.363500000000002Q440.6730000000002 -8.988000000000001 440.6730000000002 -7.3500000000000005Q440.6730000000002 -5.691000000000001 440.09550000000013 -4.3155Q439.51800000000014 -2.9400000000000004 438.4995000000001 -1.9425000000000003Q437.48100000000017 -0.9450000000000001 436.1265000000002 -0.399Q434.77200000000016 0.14700000000000002 433.21800000000013 0.14700000000000002ZM433.21800000000013 -1.9740000000000002Q434.64600000000013 -1.9740000000000002 435.7590000000001 -2.6355000000000004Q436.8720000000001 -3.297 437.5020000000002 -4.5045Q438.1320000000002 -5.712000000000001 438.1320000000002 -7.3500000000000005Q438.1320000000002 -9.009 437.5020000000002 -10.206Q436.8720000000001 -11.403 435.7590000000001 -12.0645Q434.64600000000013 -12.726 433.21800000000013 -12.726Q431.79000000000013 -12.726 430.67700000000013 -12.0645Q429.56400000000014 -11.403 428.9235000000001 -10.206Q428.28300000000013 -9.009 428.28300000000013 -7.3500000000000005Q428.28300000000013 -5.712000000000001 428.9235000000001 -4.5045Q429.56400000000014 -3.297 430.67700000000013 -2.6355000000000004Q431.79000000000013 -1.9740000000000002 433.21800000000013 -1.9740000000000002ZM461.71800000000013 -14.700000000000001Q463.48200000000014 -14.700000000000001 464.62650000000014 -14.101500000000001Q465.77100000000013 -13.503 466.33800000000014 -12.4845Q466.90500000000014 -11.466000000000001 466.90500000000014 -10.269Q466.90500000000014 -9.471 466.6320000000002 -8.694Q466.35900000000015 -7.917000000000001 465.7500000000001 -7.2555000000000005Q465.14100000000013 -6.594 464.15400000000017 -6.216Q463.88100000000014 -6.111000000000001 463.58700000000016 -6.027L467.22000000000014 0.0H464.4060000000002L461.02500000000015 -5.817H458.46300000000014V0.0H455.96400000000017V-14.700000000000001ZM464.38500000000016 -10.269Q464.38500000000016 -11.361 463.73400000000015 -11.991Q463.08300000000014 -12.621 461.71800000000013 -12.621H458.46300000000014V-7.896000000000001H461.71800000000013Q462.64200000000017 -7.896000000000001 463.21950000000015 -8.1795Q463.79700000000014 -8.463000000000001 464.0910000000001 -8.9985Q464.38500000000016 -9.534 464.38500000000016 -10.269ZM482.5320000000002 -14.700000000000001H485.0310000000002V0.0H482.5320000000002ZM513.0060000000002 -14.700000000000001V0.0H510.4650000000002L503.6190000000002 -10.773000000000001V0.0H501.12000000000023V-14.700000000000001H503.68200000000024L510.5280000000002 -3.9690000000000003V-14.700000000000001ZM540.2040000000003 -10.122Q539.4270000000002 -11.508000000000001 538.2930000000002 -12.117Q537.1590000000002 -12.726 535.8780000000003 -12.726Q534.4920000000002 -12.726 533.3475000000002 -12.043500000000002Q532.2030000000002 -11.361 531.5415000000003 -10.153500000000001Q530.8800000000002 -8.946 530.8800000000002 -7.3500000000000005Q530.8800000000002 -5.7540000000000004 531.5310000000002 -4.5465Q532.1820000000002 -3.3390000000000004 533.3055000000002 -2.6565000000000003Q534.4290000000002 -1.9740000000000002 535.8150000000003 -1.9740000000000002Q536.8020000000002 -1.9740000000000002 537.6630000000002 -2.3100000000000005Q538.5240000000002 -2.6460000000000004 539.1750000000002 -3.2445000000000004Q539.8260000000002 -3.8430000000000004 540.2040000000003 -4.62V-6.090000000000001H535.9830000000003V-8.127H542.7030000000002V-4.473Q542.1990000000003 -3.1710000000000003 541.2015000000004 -2.1210000000000004Q540.2040000000003 -1.0710000000000002 538.8285000000003 -0.4620000000000001Q537.4530000000002 0.14700000000000002 535.7940000000002 0.14700000000000002Q534.2400000000002 0.14700000000000002 532.8855000000003 -0.399Q531.5310000000003 -0.9450000000000001 530.5125000000003 -1.9425000000000003Q529.4940000000003 -2.9400000000000004 528.9165000000003 -4.3155Q528.3390000000003 -5.691000000000001 528.3390000000003 -7.3500000000000005Q528.3390000000003 -8.988000000000001 528.9165000000003 -10.363500000000002Q529.4940000000003 -11.739 530.5125000000003 -12.747Q531.5310000000003 -13.755 532.8855000000003 -14.301000000000002Q534.2400000000002 -14.847000000000001 535.7940000000002 -14.847000000000001Q537.2010000000002 -14.847000000000001 538.5030000000003 -14.395500000000002Q539.8050000000003 -13.944 540.8340000000003 -13.062000000000001Q541.8630000000003 -12.180000000000001 542.4090000000002 -10.899000000000001Z" fill="#B9A27C"/></g>
+</svg></div>
+    <div style="position:relative;display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-top:40px">
+      <span class="eyebrow" style="color:var(--oat)" data-i="authEyebrow">Private label flooring · Made in Panamá</span>
+      <h1 data-i="authTitle">Your brand. Built on our core.</h1>
+      <p data-i="authSub">Launch your own SPC and laminate line with factory pricing, your labels and displays, shipped to Miami.</p>
+    </div>
+    <div class="planks" id="authPlanks"></div>
+  </div>
+  <div class="auth-form">
+    <form class="auth-card" id="authForm">
+      <div class="seg" role="group" aria-label="Account">
+        <button type="button" id="tabSignup" aria-pressed="true" data-i="signUp">Sign up</button>
+        <button type="button" id="tabLogin" aria-pressed="false" data-i="logIn">Log in</button>
+      </div>
+      <div>
+        <h2 id="authH" data-i="createAcct">Create your business account</h2>
+        <p class="note" id="authP" data-i="createAcctSub">For flooring stores, distributors, contractors and designers.</p>
+      </div>
+      <div class="social">
+        <button type="button" class="btn btn-ghost js-enter"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.5-.2-2.3H12v4.3h5.9a5 5 0 0 1-2.2 3.3v2.7h3.6c2-1.9 3.2-4.7 3.2-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.7c-1 .7-2.2 1-3.7 1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.8 14.1a6.6 6.6 0 0 1 0-4.2V7.1H2.1a11 11 0 0 0 0 9.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2A11 11 0 0 0 2.1 7.1l3.7 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>Google</button>
+        <button type="button" class="btn btn-ghost js-enter"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.9 11.9v-8.4h-3V12h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z"/></svg>Facebook</button>
+      </div>
+      <div class="or" data-i="orEmail">or with email</div>
+      <div class="field" id="fCompany"><label for="company" data-i="company">Company name</label><input id="company" value="Coral Floors & Design LLC" autocomplete="organization"></div>
+      <div class="field" id="fType"><label for="btype" data-i="bizType">Business type</label>
+        <select id="btype"><option>Flooring store</option><option>Distributor</option><option>Contractor / installer</option><option>Interior designer</option></select></div>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" value="daniela@coralfloors.com" autocomplete="email"></div>
+      <div class="field"><label for="pw" data-i="password">Password</label><input id="pw" type="password" value="demo-password" autocomplete="current-password"></div>
+      <button class="btn btn-dark" type="submit" id="authBtn" data-i="continue">Continue</button>
+      <p class="note"><span class="demo-flag">DEMO</span> Sample data · any button logs you in.</p>
+      <p class="note" data-i="approvalNote">New accounts are reviewed in under 24 h. You can browse collections while you wait.</p>
+    </form>
+  </div>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <aside class="rail">
+    <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" aria-label="CORE" role="img" viewBox="0 0 639.65 292.32">
+  
+  <g transform="translate(41.6 0)">
+  <path d="M80.60000000000001 191.39999999999998Q64.8 191.39999999999998 51.3 185.89999999999998Q37.800000000000004 180.39999999999998 27.700000000000003 170.39999999999998Q17.6 160.39999999999998 12.0 147.09999999999997Q6.4 133.79999999999998 6.4 118.39999999999999Q6.4 102.99999999999999 12.0 89.69999999999999Q17.6 76.39999999999998 27.6 66.59999999999998Q37.6 56.79999999999998 51.10000000000001 51.29999999999998Q64.60000000000001 45.79999999999998 80.4 45.79999999999998Q97.2 45.79999999999998 110.30000000000001 51.19999999999999Q123.4 56.599999999999994 133.20000000000002 65.99999999999999L112.2 87.19999999999999Q106.60000000000001 81.19999999999999 98.70000000000002 77.79999999999998Q90.80000000000001 74.39999999999998 80.4 74.39999999999998Q71.2 74.39999999999998 63.5 77.49999999999997Q55.800000000000004 80.59999999999998 50.300000000000004 86.39999999999998Q44.800000000000004 92.19999999999999 41.7 100.39999999999998Q38.6 108.59999999999998 38.6 118.39999999999999Q38.6 128.39999999999998 41.7 136.59999999999997Q44.800000000000004 144.79999999999998 50.300000000000004 150.59999999999997Q55.800000000000004 156.39999999999998 63.5 159.59999999999997Q71.2 162.79999999999998 80.4 162.79999999999998Q91.2 162.79999999999998 99.2 159.39999999999998Q107.2 156.0 113.0 150.0L134.20000000000002 171.2Q124.0 180.6 110.9 186.0Q97.80000000000001 191.39999999999998 80.60000000000001 191.39999999999998Z" fill="#F6F2EA"/>
+  <path d="M220.22 45.18H220.22A73.42 73.42 0 0 1 281.06 77.48H159.39A73.42 73.42 0 0 1 220.22 45.18Z" fill="#F6F2EA"/>
+  <path d="M154.29 86.29H286.16A73.42 73.42 0 0 1 293.28 111.26H147.17A73.42 73.42 0 0 1 154.29 86.29Z" fill="#F6F2EA"/>
+  <path d="M146.81 120.07H293.63A73.42 73.42 0 0 1 276.64 165.59H163.81A73.42 73.42 0 0 1 146.81 120.07Z" fill="#D9C6A5"/>
+  <path d="M172.5 174.4H267.94A73.42 73.42 0 0 1 220.22 192.02H220.22A73.42 73.42 0 0 1 172.5 174.4Z" fill="#F6F2EA"/>
+  <path d="M320.248 189.2V47.99999999999997H377.84799999999996Q391.84799999999996 47.99999999999997 402.448 53.29999999999998Q413.048 58.599999999999994 419.048 67.99999999999999Q425.048 77.39999999999998 425.048 89.59999999999998Q425.048 101.99999999999999 419.048 111.29999999999998Q413.048 120.59999999999998 402.248 125.79999999999998Q396.248 128.79999999999998 389.048 130.0L434.248 189.2H397.048L354.84799999999996 131.0H351.64799999999997V189.2ZM351.64799999999997 72.39999999999998V107.79999999999998H374.048Q383.448 107.79999999999998 388.548 102.99999999999999Q393.64799999999997 98.19999999999999 393.64799999999997 89.99999999999999Q393.64799999999997 82.39999999999998 388.64799999999997 77.39999999999998Q383.64799999999997 72.39999999999998 374.248 72.39999999999998ZM448.648 189.2V47.99999999999997H549.048V74.99999999999999H480.048V103.99999999999999H543.048V130.2H480.048V162.0H550.048V189.2Z" fill="#F6F2EA"/>
+  </g>
+  <g transform="translate(48 244.32)"><path d="M7.287000000000001 -7.896000000000001Q8.211 -7.896000000000001 8.7885 -8.1795Q9.366000000000001 -8.463000000000001 9.66 -8.9985Q9.954 -9.534 9.954 -10.269Q9.954 -11.382000000000001 9.303 -12.0015Q8.652000000000001 -12.621 7.287000000000001 -12.621H4.032V-7.896000000000001ZM12.474 -10.269Q12.474 -9.471 12.201 -8.694Q11.928 -7.917000000000001 11.319 -7.2555000000000005Q10.71 -6.594 9.7125 -6.205500000000001Q8.715 -5.817 7.287000000000001 -5.817H4.032V0.0H1.5330000000000001V-14.700000000000001H7.287000000000001Q9.051 -14.700000000000001 10.1955 -14.101500000000001Q11.34 -13.503 11.907 -12.4845Q12.474 -11.466000000000001 12.474 -10.269ZM33.56100000000001 -14.700000000000001Q35.325 -14.700000000000001 36.469500000000004 -14.101500000000001Q37.614000000000004 -13.503 38.181000000000004 -12.4845Q38.748000000000005 -11.466000000000001 38.748000000000005 -10.269Q38.748000000000005 -9.471 38.47500000000001 -8.694Q38.202000000000005 -7.917000000000001 37.593 -7.2555000000000005Q36.98400000000001 -6.594 35.99700000000001 -6.216Q35.724000000000004 -6.111000000000001 35.43000000000001 -6.027L39.063 0.0H36.24900000000001L32.868 -5.817H30.306000000000004V0.0H27.807000000000006V-14.700000000000001ZM36.22800000000001 -10.269Q36.22800000000001 -11.361 35.577000000000005 -11.991Q34.926 -12.621 33.56100000000001 -12.621H30.306000000000004V-7.896000000000001H33.56100000000001Q34.48500000000001 -7.896000000000001 35.06250000000001 -8.1795Q35.64000000000001 -8.463000000000001 35.93400000000001 -8.9985Q36.22800000000001 -9.534 36.22800000000001 -10.269ZM54.375000000000014 -14.700000000000001H56.87400000000001V0.0H54.375000000000014ZM83.14800000000002 -14.700000000000001H85.79400000000003L80.31300000000002 0.0H77.39400000000002L71.93400000000003 -14.700000000000001H74.58000000000003L78.86400000000002 -2.5410000000000004ZM103.31100000000002 -3.591 102.05100000000003 0.0H99.48900000000003L104.69700000000003 -14.700000000000001H108.93900000000002L114.16800000000003 0.0H111.60600000000002L110.36700000000003 -3.591ZM107.21700000000003 -12.621H106.46100000000003L104.02500000000003 -5.649H109.63200000000003ZM128.09400000000002 -14.700000000000001H139.64400000000003V-12.621H135.12900000000002V0.0H132.63000000000002V-12.621H128.09400000000002ZM164.973 -12.621H157.43400000000003V-8.484H163.08300000000003V-6.405H157.43400000000003V-2.079H164.973V0.0H154.935V-14.700000000000001H164.973ZM202.02300000000002 -14.700000000000001V-2.079H208.61700000000002V0.0H199.524V-14.700000000000001ZM226.13400000000001 -3.591 224.874 0.0H222.312L227.52 -14.700000000000001H231.762L236.991 0.0H234.429L233.19 -3.591ZM230.04000000000002 -12.621H229.284L226.848 -5.649H232.455ZM260.36699999999996 -10.542Q260.36699999999996 -11.529 259.7265 -12.075Q259.086 -12.621 257.931 -12.621H254.172V-8.484H257.931Q259.086 -8.484 259.7265 -9.0195Q260.36699999999996 -9.555 260.36699999999996 -10.542ZM251.67299999999997 0.0V-14.700000000000001H258.183Q259.73699999999997 -14.700000000000001 260.77649999999994 -14.175Q261.816 -13.65 262.3515 -12.778500000000001Q262.887 -11.907 262.887 -10.857000000000001Q262.887 -9.891 262.53 -9.219000000000001Q262.173 -8.547 261.56399999999996 -8.148Q260.955 -7.7490000000000006 260.199 -7.581V-7.413Q261.102 -7.287000000000001 261.79499999999996 -6.888000000000001Q262.488 -6.489000000000001 262.866 -5.7540000000000004Q263.24399999999997 -5.019 263.24399999999997 -3.927Q263.24399999999997 -2.814 262.6665 -1.9215Q262.089 -1.0290000000000001 261.01800000000003 -0.5145000000000001Q259.947 0.0 258.45599999999996 0.0ZM254.172 -2.079H258.204Q259.401 -2.079 260.073 -2.625Q260.745 -3.1710000000000003 260.745 -4.2Q260.745 -5.292000000000001 260.02049999999997 -5.859Q259.296 -6.426 258.12 -6.426H254.172ZM288.846 -12.621H281.30699999999996V-8.484H286.95599999999996V-6.405H281.30699999999996V-2.079H288.846V0.0H278.808V-14.700000000000001H288.846ZM307.01399999999995 -14.700000000000001V-2.079H313.60799999999995V0.0H304.515V-14.700000000000001ZM347.55 -14.700000000000001H357.588V-12.621H350.049V-8.484H355.698V-6.405H350.049V0.0H347.55ZM375.37800000000004 -14.700000000000001V-2.079H381.97200000000004V0.0H372.8790000000001V-14.700000000000001ZM403.75200000000007 0.14700000000000002Q402.1980000000001 0.14700000000000002 400.8330000000001 -0.399Q399.4680000000001 -0.9450000000000001 398.44950000000006 -1.9425000000000003Q397.4310000000001 -2.9400000000000004 396.85350000000005 -4.3155Q396.27600000000007 -5.691000000000001 396.27600000000007 -7.3500000000000005Q396.27600000000007 -8.988000000000001 396.85350000000005 -10.363500000000002Q397.4310000000001 -11.739 398.44950000000006 -12.747Q399.4680000000001 -13.755 400.8330000000001 -14.301000000000002Q402.1980000000001 -14.847000000000001 403.75200000000007 -14.847000000000001Q405.3060000000001 -14.847000000000001 406.66050000000007 -14.301000000000002Q408.0150000000001 -13.755 409.0335000000001 -12.747Q410.0520000000001 -11.739 410.6295000000001 -10.363500000000002Q411.2070000000001 -8.988000000000001 411.2070000000001 -7.3500000000000005Q411.2070000000001 -5.691000000000001 410.6295000000001 -4.3155Q410.0520000000001 -2.9400000000000004 409.0335000000001 -1.9425000000000003Q408.0150000000001 -0.9450000000000001 406.66050000000007 -0.399Q405.3060000000001 0.14700000000000002 403.75200000000007 0.14700000000000002ZM403.75200000000007 -1.9740000000000002Q405.18000000000006 -1.9740000000000002 406.29300000000006 -2.6355000000000004Q407.40600000000006 -3.297 408.03600000000006 -4.5045Q408.66600000000005 -5.712000000000001 408.66600000000005 -7.3500000000000005Q408.66600000000005 -9.009 408.03600000000006 -10.206Q407.40600000000006 -11.403 406.29300000000006 -12.0645Q405.18000000000006 -12.726 403.75200000000007 -12.726Q402.32400000000007 -12.726 401.21100000000007 -12.0645Q400.09800000000007 -11.403 399.4575000000001 -10.206Q398.81700000000006 -9.009 398.81700000000006 -7.3500000000000005Q398.81700000000006 -5.712000000000001 399.4575000000001 -4.5045Q400.09800000000007 -3.297 401.21100000000007 -2.6355000000000004Q402.32400000000007 -1.9740000000000002 403.75200000000007 -1.9740000000000002ZM433.21800000000013 0.14700000000000002Q431.66400000000016 0.14700000000000002 430.29900000000015 -0.399Q428.93400000000014 -0.9450000000000001 427.9155000000002 -1.9425000000000003Q426.89700000000016 -2.9400000000000004 426.3195000000002 -4.3155Q425.74200000000013 -5.691000000000001 425.74200000000013 -7.3500000000000005Q425.74200000000013 -8.988000000000001 426.3195000000002 -10.363500000000002Q426.89700000000016 -11.739 427.9155000000002 -12.747Q428.93400000000014 -13.755 430.29900000000015 -14.301000000000002Q431.66400000000016 -14.847000000000001 433.21800000000013 -14.847000000000001Q434.77200000000016 -14.847000000000001 436.1265000000002 -14.301000000000002Q437.48100000000017 -13.755 438.4995000000001 -12.747Q439.51800000000014 -11.739 440.09550000000013 -10.363500000000002Q440.6730000000002 -8.988000000000001 440.6730000000002 -7.3500000000000005Q440.6730000000002 -5.691000000000001 440.09550000000013 -4.3155Q439.51800000000014 -2.9400000000000004 438.4995000000001 -1.9425000000000003Q437.48100000000017 -0.9450000000000001 436.1265000000002 -0.399Q434.77200000000016 0.14700000000000002 433.21800000000013 0.14700000000000002ZM433.21800000000013 -1.9740000000000002Q434.64600000000013 -1.9740000000000002 435.7590000000001 -2.6355000000000004Q436.8720000000001 -3.297 437.5020000000002 -4.5045Q438.1320000000002 -5.712000000000001 438.1320000000002 -7.3500000000000005Q438.1320000000002 -9.009 437.5020000000002 -10.206Q436.8720000000001 -11.403 435.7590000000001 -12.0645Q434.64600000000013 -12.726 433.21800000000013 -12.726Q431.79000000000013 -12.726 430.67700000000013 -12.0645Q429.56400000000014 -11.403 428.9235000000001 -10.206Q428.28300000000013 -9.009 428.28300000000013 -7.3500000000000005Q428.28300000000013 -5.712000000000001 428.9235000000001 -4.5045Q429.56400000000014 -3.297 430.67700000000013 -2.6355000000000004Q431.79000000000013 -1.9740000000000002 433.21800000000013 -1.9740000000000002ZM461.71800000000013 -14.700000000000001Q463.48200000000014 -14.700000000000001 464.62650000000014 -14.101500000000001Q465.77100000000013 -13.503 466.33800000000014 -12.4845Q466.90500000000014 -11.466000000000001 466.90500000000014 -10.269Q466.90500000000014 -9.471 466.6320000000002 -8.694Q466.35900000000015 -7.917000000000001 465.7500000000001 -7.2555000000000005Q465.14100000000013 -6.594 464.15400000000017 -6.216Q463.88100000000014 -6.111000000000001 463.58700000000016 -6.027L467.22000000000014 0.0H464.4060000000002L461.02500000000015 -5.817H458.46300000000014V0.0H455.96400000000017V-14.700000000000001ZM464.38500000000016 -10.269Q464.38500000000016 -11.361 463.73400000000015 -11.991Q463.08300000000014 -12.621 461.71800000000013 -12.621H458.46300000000014V-7.896000000000001H461.71800000000013Q462.64200000000017 -7.896000000000001 463.21950000000015 -8.1795Q463.79700000000014 -8.463000000000001 464.0910000000001 -8.9985Q464.38500000000016 -9.534 464.38500000000016 -10.269ZM482.5320000000002 -14.700000000000001H485.0310000000002V0.0H482.5320000000002ZM513.0060000000002 -14.700000000000001V0.0H510.4650000000002L503.6190000000002 -10.773000000000001V0.0H501.12000000000023V-14.700000000000001H503.68200000000024L510.5280000000002 -3.9690000000000003V-14.700000000000001ZM540.2040000000003 -10.122Q539.4270000000002 -11.508000000000001 538.2930000000002 -12.117Q537.1590000000002 -12.726 535.8780000000003 -12.726Q534.4920000000002 -12.726 533.3475000000002 -12.043500000000002Q532.2030000000002 -11.361 531.5415000000003 -10.153500000000001Q530.8800000000002 -8.946 530.8800000000002 -7.3500000000000005Q530.8800000000002 -5.7540000000000004 531.5310000000002 -4.5465Q532.1820000000002 -3.3390000000000004 533.3055000000002 -2.6565000000000003Q534.4290000000002 -1.9740000000000002 535.8150000000003 -1.9740000000000002Q536.8020000000002 -1.9740000000000002 537.6630000000002 -2.3100000000000005Q538.5240000000002 -2.6460000000000004 539.1750000000002 -3.2445000000000004Q539.8260000000002 -3.8430000000000004 540.2040000000003 -4.62V-6.090000000000001H535.9830000000003V-8.127H542.7030000000002V-4.473Q542.1990000000003 -3.1710000000000003 541.2015000000004 -2.1210000000000004Q540.2040000000003 -1.0710000000000002 538.8285000000003 -0.4620000000000001Q537.4530000000002 0.14700000000000002 535.7940000000002 0.14700000000000002Q534.2400000000002 0.14700000000000002 532.8855000000003 -0.399Q531.5310000000003 -0.9450000000000001 530.5125000000003 -1.9425000000000003Q529.4940000000003 -2.9400000000000004 528.9165000000003 -4.3155Q528.3390000000003 -5.691000000000001 528.3390000000003 -7.3500000000000005Q528.3390000000003 -8.988000000000001 528.9165000000003 -10.363500000000002Q529.4940000000003 -11.739 530.5125000000003 -12.747Q531.5310000000003 -13.755 532.8855000000003 -14.301000000000002Q534.2400000000002 -14.847000000000001 535.7940000000002 -14.847000000000001Q537.2010000000002 -14.847000000000001 538.5030000000003 -14.395500000000002Q539.8050000000003 -13.944 540.8340000000003 -13.062000000000001Q541.8630000000003 -12.180000000000001 542.4090000000002 -10.899000000000001Z" fill="#B9A27C"/></g>
+</svg></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="rail-foot">
+      <div class="who"><div class="avatar">DR</div><div><div style="font-weight:600">Daniela R.</div><small>Coral Floors & Design</small></div></div>
+      <small data-i="rep">Your rep: Carlos · WhatsApp</small>
+    </div>
+  </aside>
+  <main>
+    <header class="top">
+      <div class="mlogo" style="display:none;width:96px"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" aria-label="CORE" role="img" viewBox="0 0 639.65 292.32">
+  
+  <g transform="translate(41.6 0)">
+  <path d="M80.60000000000001 191.39999999999998Q64.8 191.39999999999998 51.3 185.89999999999998Q37.800000000000004 180.39999999999998 27.700000000000003 170.39999999999998Q17.6 160.39999999999998 12.0 147.09999999999997Q6.4 133.79999999999998 6.4 118.39999999999999Q6.4 102.99999999999999 12.0 89.69999999999999Q17.6 76.39999999999998 27.6 66.59999999999998Q37.6 56.79999999999998 51.10000000000001 51.29999999999998Q64.60000000000001 45.79999999999998 80.4 45.79999999999998Q97.2 45.79999999999998 110.30000000000001 51.19999999999999Q123.4 56.599999999999994 133.20000000000002 65.99999999999999L112.2 87.19999999999999Q106.60000000000001 81.19999999999999 98.70000000000002 77.79999999999998Q90.80000000000001 74.39999999999998 80.4 74.39999999999998Q71.2 74.39999999999998 63.5 77.49999999999997Q55.800000000000004 80.59999999999998 50.300000000000004 86.39999999999998Q44.800000000000004 92.19999999999999 41.7 100.39999999999998Q38.6 108.59999999999998 38.6 118.39999999999999Q38.6 128.39999999999998 41.7 136.59999999999997Q44.800000000000004 144.79999999999998 50.300000000000004 150.59999999999997Q55.800000000000004 156.39999999999998 63.5 159.59999999999997Q71.2 162.79999999999998 80.4 162.79999999999998Q91.2 162.79999999999998 99.2 159.39999999999998Q107.2 156.0 113.0 150.0L134.20000000000002 171.2Q124.0 180.6 110.9 186.0Q97.80000000000001 191.39999999999998 80.60000000000001 191.39999999999998Z" fill="#141317"/>
+  <path d="M220.22 45.18H220.22A73.42 73.42 0 0 1 281.06 77.48H159.39A73.42 73.42 0 0 1 220.22 45.18Z" fill="#141317"/>
+  <path d="M154.29 86.29H286.16A73.42 73.42 0 0 1 293.28 111.26H147.17A73.42 73.42 0 0 1 154.29 86.29Z" fill="#141317"/>
+  <path d="M146.81 120.07H293.63A73.42 73.42 0 0 1 276.64 165.59H163.81A73.42 73.42 0 0 1 146.81 120.07Z" fill="#D9C6A5"/>
+  <path d="M172.5 174.4H267.94A73.42 73.42 0 0 1 220.22 192.02H220.22A73.42 73.42 0 0 1 172.5 174.4Z" fill="#141317"/>
+  <path d="M320.248 189.2V47.99999999999997H377.84799999999996Q391.84799999999996 47.99999999999997 402.448 53.29999999999998Q413.048 58.599999999999994 419.048 67.99999999999999Q425.048 77.39999999999998 425.048 89.59999999999998Q425.048 101.99999999999999 419.048 111.29999999999998Q413.048 120.59999999999998 402.248 125.79999999999998Q396.248 128.79999999999998 389.048 130.0L434.248 189.2H397.048L354.84799999999996 131.0H351.64799999999997V189.2ZM351.64799999999997 72.39999999999998V107.79999999999998H374.048Q383.448 107.79999999999998 388.548 102.99999999999999Q393.64799999999997 98.19999999999999 393.64799999999997 89.99999999999999Q393.64799999999997 82.39999999999998 388.64799999999997 77.39999999999998Q383.64799999999997 72.39999999999998 374.248 72.39999999999998ZM448.648 189.2V47.99999999999997H549.048V74.99999999999999H480.048V103.99999999999999H543.048V130.2H480.048V162.0H550.048V189.2Z" fill="#141317"/>
+  </g>
+  <g transform="translate(48 244.32)"><path d="M7.287000000000001 -7.896000000000001Q8.211 -7.896000000000001 8.7885 -8.1795Q9.366000000000001 -8.463000000000001 9.66 -8.9985Q9.954 -9.534 9.954 -10.269Q9.954 -11.382000000000001 9.303 -12.0015Q8.652000000000001 -12.621 7.287000000000001 -12.621H4.032V-7.896000000000001ZM12.474 -10.269Q12.474 -9.471 12.201 -8.694Q11.928 -7.917000000000001 11.319 -7.2555000000000005Q10.71 -6.594 9.7125 -6.205500000000001Q8.715 -5.817 7.287000000000001 -5.817H4.032V0.0H1.5330000000000001V-14.700000000000001H7.287000000000001Q9.051 -14.700000000000001 10.1955 -14.101500000000001Q11.34 -13.503 11.907 -12.4845Q12.474 -11.466000000000001 12.474 -10.269ZM33.56100000000001 -14.700000000000001Q35.325 -14.700000000000001 36.469500000000004 -14.101500000000001Q37.614000000000004 -13.503 38.181000000000004 -12.4845Q38.748000000000005 -11.466000000000001 38.748000000000005 -10.269Q38.748000000000005 -9.471 38.47500000000001 -8.694Q38.202000000000005 -7.917000000000001 37.593 -7.2555000000000005Q36.98400000000001 -6.594 35.99700000000001 -6.216Q35.724000000000004 -6.111000000000001 35.43000000000001 -6.027L39.063 0.0H36.24900000000001L32.868 -5.817H30.306000000000004V0.0H27.807000000000006V-14.700000000000001ZM36.22800000000001 -10.269Q36.22800000000001 -11.361 35.577000000000005 -11.991Q34.926 -12.621 33.56100000000001 -12.621H30.306000000000004V-7.896000000000001H33.56100000000001Q34.48500000000001 -7.896000000000001 35.06250000000001 -8.1795Q35.64000000000001 -8.463000000000001 35.93400000000001 -8.9985Q36.22800000000001 -9.534 36.22800000000001 -10.269ZM54.375000000000014 -14.700000000000001H56.87400000000001V0.0H54.375000000000014ZM83.14800000000002 -14.700000000000001H85.79400000000003L80.31300000000002 0.0H77.39400000000002L71.93400000000003 -14.700000000000001H74.58000000000003L78.86400000000002 -2.5410000000000004ZM103.31100000000002 -3.591 102.05100000000003 0.0H99.48900000000003L104.69700000000003 -14.700000000000001H108.93900000000002L114.16800000000003 0.0H111.60600000000002L110.36700000000003 -3.591ZM107.21700000000003 -12.621H106.46100000000003L104.02500000000003 -5.649H109.63200000000003ZM128.09400000000002 -14.700000000000001H139.64400000000003V-12.621H135.12900000000002V0.0H132.63000000000002V-12.621H128.09400000000002ZM164.973 -12.621H157.43400000000003V-8.484H163.08300000000003V-6.405H157.43400000000003V-2.079H164.973V0.0H154.935V-14.700000000000001H164.973ZM202.02300000000002 -14.700000000000001V-2.079H208.61700000000002V0.0H199.524V-14.700000000000001ZM226.13400000000001 -3.591 224.874 0.0H222.312L227.52 -14.700000000000001H231.762L236.991 0.0H234.429L233.19 -3.591ZM230.04000000000002 -12.621H229.284L226.848 -5.649H232.455ZM260.36699999999996 -10.542Q260.36699999999996 -11.529 259.7265 -12.075Q259.086 -12.621 257.931 -12.621H254.172V-8.484H257.931Q259.086 -8.484 259.7265 -9.0195Q260.36699999999996 -9.555 260.36699999999996 -10.542ZM251.67299999999997 0.0V-14.700000000000001H258.183Q259.73699999999997 -14.700000000000001 260.77649999999994 -14.175Q261.816 -13.65 262.3515 -12.778500000000001Q262.887 -11.907 262.887 -10.857000000000001Q262.887 -9.891 262.53 -9.219000000000001Q262.173 -8.547 261.56399999999996 -8.148Q260.955 -7.7490000000000006 260.199 -7.581V-7.413Q261.102 -7.287000000000001 261.79499999999996 -6.888000000000001Q262.488 -6.489000000000001 262.866 -5.7540000000000004Q263.24399999999997 -5.019 263.24399999999997 -3.927Q263.24399999999997 -2.814 262.6665 -1.9215Q262.089 -1.0290000000000001 261.01800000000003 -0.5145000000000001Q259.947 0.0 258.45599999999996 0.0ZM254.172 -2.079H258.204Q259.401 -2.079 260.073 -2.625Q260.745 -3.1710000000000003 260.745 -4.2Q260.745 -5.292000000000001 260.02049999999997 -5.859Q259.296 -6.426 258.12 -6.426H254.172ZM288.846 -12.621H281.30699999999996V-8.484H286.95599999999996V-6.405H281.30699999999996V-2.079H288.846V0.0H278.808V-14.700000000000001H288.846ZM307.01399999999995 -14.700000000000001V-2.079H313.60799999999995V0.0H304.515V-14.700000000000001ZM347.55 -14.700000000000001H357.588V-12.621H350.049V-8.484H355.698V-6.405H350.049V0.0H347.55ZM375.37800000000004 -14.700000000000001V-2.079H381.97200000000004V0.0H372.8790000000001V-14.700000000000001ZM403.75200000000007 0.14700000000000002Q402.1980000000001 0.14700000000000002 400.8330000000001 -0.399Q399.4680000000001 -0.9450000000000001 398.44950000000006 -1.9425000000000003Q397.4310000000001 -2.9400000000000004 396.85350000000005 -4.3155Q396.27600000000007 -5.691000000000001 396.27600000000007 -7.3500000000000005Q396.27600000000007 -8.988000000000001 396.85350000000005 -10.363500000000002Q397.4310000000001 -11.739 398.44950000000006 -12.747Q399.4680000000001 -13.755 400.8330000000001 -14.301000000000002Q402.1980000000001 -14.847000000000001 403.75200000000007 -14.847000000000001Q405.3060000000001 -14.847000000000001 406.66050000000007 -14.301000000000002Q408.0150000000001 -13.755 409.0335000000001 -12.747Q410.0520000000001 -11.739 410.6295000000001 -10.363500000000002Q411.2070000000001 -8.988000000000001 411.2070000000001 -7.3500000000000005Q411.2070000000001 -5.691000000000001 410.6295000000001 -4.3155Q410.0520000000001 -2.9400000000000004 409.0335000000001 -1.9425000000000003Q408.0150000000001 -0.9450000000000001 406.66050000000007 -0.399Q405.3060000000001 0.14700000000000002 403.75200000000007 0.14700000000000002ZM403.75200000000007 -1.9740000000000002Q405.18000000000006 -1.9740000000000002 406.29300000000006 -2.6355000000000004Q407.40600000000006 -3.297 408.03600000000006 -4.5045Q408.66600000000005 -5.712000000000001 408.66600000000005 -7.3500000000000005Q408.66600000000005 -9.009 408.03600000000006 -10.206Q407.40600000000006 -11.403 406.29300000000006 -12.0645Q405.18000000000006 -12.726 403.75200000000007 -12.726Q402.32400000000007 -12.726 401.21100000000007 -12.0645Q400.09800000000007 -11.403 399.4575000000001 -10.206Q398.81700000000006 -9.009 398.81700000000006 -7.3500000000000005Q398.81700000000006 -5.712000000000001 399.4575000000001 -4.5045Q400.09800000000007 -3.297 401.21100000000007 -2.6355000000000004Q402.32400000000007 -1.9740000000000002 403.75200000000007 -1.9740000000000002ZM433.21800000000013 0.14700000000000002Q431.66400000000016 0.14700000000000002 430.29900000000015 -0.399Q428.93400000000014 -0.9450000000000001 427.9155000000002 -1.9425000000000003Q426.89700000000016 -2.9400000000000004 426.3195000000002 -4.3155Q425.74200000000013 -5.691000000000001 425.74200000000013 -7.3500000000000005Q425.74200000000013 -8.988000000000001 426.3195000000002 -10.363500000000002Q426.89700000000016 -11.739 427.9155000000002 -12.747Q428.93400000000014 -13.755 430.29900000000015 -14.301000000000002Q431.66400000000016 -14.847000000000001 433.21800000000013 -14.847000000000001Q434.77200000000016 -14.847000000000001 436.1265000000002 -14.301000000000002Q437.48100000000017 -13.755 438.4995000000001 -12.747Q439.51800000000014 -11.739 440.09550000000013 -10.363500000000002Q440.6730000000002 -8.988000000000001 440.6730000000002 -7.3500000000000005Q440.6730000000002 -5.691000000000001 440.09550000000013 -4.3155Q439.51800000000014 -2.9400000000000004 438.4995000000001 -1.9425000000000003Q437.48100000000017 -0.9450000000000001 436.1265000000002 -0.399Q434.77200000000016 0.14700000000000002 433.21800000000013 0.14700000000000002ZM433.21800000000013 -1.9740000000000002Q434.64600000000013 -1.9740000000000002 435.7590000000001 -2.6355000000000004Q436.8720000000001 -3.297 437.5020000000002 -4.5045Q438.1320000000002 -5.712000000000001 438.1320000000002 -7.3500000000000005Q438.1320000000002 -9.009 437.5020000000002 -10.206Q436.8720000000001 -11.403 435.7590000000001 -12.0645Q434.64600000000013 -12.726 433.21800000000013 -12.726Q431.79000000000013 -12.726 430.67700000000013 -12.0645Q429.56400000000014 -11.403 428.9235000000001 -10.206Q428.28300000000013 -9.009 428.28300000000013 -7.3500000000000005Q428.28300000000013 -5.712000000000001 428.9235000000001 -4.5045Q429.56400000000014 -3.297 430.67700000000013 -2.6355000000000004Q431.79000000000013 -1.9740000000000002 433.21800000000013 -1.9740000000000002ZM461.71800000000013 -14.700000000000001Q463.48200000000014 -14.700000000000001 464.62650000000014 -14.101500000000001Q465.77100000000013 -13.503 466.33800000000014 -12.4845Q466.90500000000014 -11.466000000000001 466.90500000000014 -10.269Q466.90500000000014 -9.471 466.6320000000002 -8.694Q466.35900000000015 -7.917000000000001 465.7500000000001 -7.2555000000000005Q465.14100000000013 -6.594 464.15400000000017 -6.216Q463.88100000000014 -6.111000000000001 463.58700000000016 -6.027L467.22000000000014 0.0H464.4060000000002L461.02500000000015 -5.817H458.46300000000014V0.0H455.96400000000017V-14.700000000000001ZM464.38500000000016 -10.269Q464.38500000000016 -11.361 463.73400000000015 -11.991Q463.08300000000014 -12.621 461.71800000000013 -12.621H458.46300000000014V-7.896000000000001H461.71800000000013Q462.64200000000017 -7.896000000000001 463.21950000000015 -8.1795Q463.79700000000014 -8.463000000000001 464.0910000000001 -8.9985Q464.38500000000016 -9.534 464.38500000000016 -10.269ZM482.5320000000002 -14.700000000000001H485.0310000000002V0.0H482.5320000000002ZM513.0060000000002 -14.700000000000001V0.0H510.4650000000002L503.6190000000002 -10.773000000000001V0.0H501.12000000000023V-14.700000000000001H503.68200000000024L510.5280000000002 -3.9690000000000003V-14.700000000000001ZM540.2040000000003 -10.122Q539.4270000000002 -11.508000000000001 538.2930000000002 -12.117Q537.1590000000002 -12.726 535.8780000000003 -12.726Q534.4920000000002 -12.726 533.3475000000002 -12.043500000000002Q532.2030000000002 -11.361 531.5415000000003 -10.153500000000001Q530.8800000000002 -8.946 530.8800000000002 -7.3500000000000005Q530.8800000000002 -5.7540000000000004 531.5310000000002 -4.5465Q532.1820000000002 -3.3390000000000004 533.3055000000002 -2.6565000000000003Q534.4290000000002 -1.9740000000000002 535.8150000000003 -1.9740000000000002Q536.8020000000002 -1.9740000000000002 537.6630000000002 -2.3100000000000005Q538.5240000000002 -2.6460000000000004 539.1750000000002 -3.2445000000000004Q539.8260000000002 -3.8430000000000004 540.2040000000003 -4.62V-6.090000000000001H535.9830000000003V-8.127H542.7030000000002V-4.473Q542.1990000000003 -3.1710000000000003 541.2015000000004 -2.1210000000000004Q540.2040000000003 -1.0710000000000002 538.8285000000003 -0.4620000000000001Q537.4530000000002 0.14700000000000002 535.7940000000002 0.14700000000000002Q534.2400000000002 0.14700000000000002 532.8855000000003 -0.399Q531.5310000000003 -0.9450000000000001 530.5125000000003 -1.9425000000000003Q529.4940000000003 -2.9400000000000004 528.9165000000003 -4.3155Q528.3390000000003 -5.691000000000001 528.3390000000003 -7.3500000000000005Q528.3390000000003 -8.988000000000001 528.9165000000003 -10.363500000000002Q529.4940000000003 -11.739 530.5125000000003 -12.747Q531.5310000000003 -13.755 532.8855000000003 -14.301000000000002Q534.2400000000002 -14.847000000000001 535.7940000000002 -14.847000000000001Q537.2010000000002 -14.847000000000001 538.5030000000003 -14.395500000000002Q539.8050000000003 -13.944 540.8340000000003 -13.062000000000001Q541.8630000000003 -12.180000000000001 542.4090000000002 -10.899000000000001Z" fill="#8B7658"/></g>
+</svg></div>
+      <label class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Search collections, colors, displays" aria-label="Search"></label>
+      <span class="demo-flag">DEMO</span>
+      <button class="btn btn-glow btn-sm qo-top-btn js-qo" type="button">⚡ <span data-i="qoBtn">Quick order</span></button>
+      <div class="spacer"></div>
+      <div class="lang" role="group" aria-label="Language"><button type="button" id="lEN" aria-pressed="true">EN</button><button type="button" id="lES" aria-pressed="false">ES</button></div>
+      <button class="iconbtn" type="button" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/></svg><span class="dot">2</span></button>
+      <a class="iconbtn" href="#quote" aria-label="Quote cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="dot num" id="cartDot">0</span></a>
+    </header>
+
+    <!-- HOME -->
+    <section class="view" id="v-home">
+      <div class="head"><div><span class="eyebrow" data-i="welcome">Welcome back, Daniela</span><h1 data-i="homeTitle">Let's get Marea to the showroom</h1></div></div>
+      <div class="hero">
+        <div>
+          <span class="eyebrow" style="color:var(--oat)">MAREA FLOORS · <span data-i="brandProgress">Brand progress</span></span>
+          <h2 style="font-size:28px;margin-top:6px" data-i="heroNext">Next: approve your sample board label</h2>
+          <p data-i="heroP">Our design team uploaded proof v2 with your notes. Approve it and production in Panamá starts this week.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap"><a href="#brand" class="btn btn-sand js-goart" data-i="reviewProof">Review proof</a><button type="button" class="btn js-qo" style="background:rgba(255,255,255,.08);color:var(--cream);box-shadow:inset 0 0 0 1px rgba(217,198,165,.35)" data-i="qoBtn">Quick order</button></div>
+        </div>
+        <div>
+          <div class="steps"><div class="done"></div><div class="done"></div><div class="done"></div><div></div><div></div></div>
+          <div class="steps-l"><span data-i="sBrand">Brand</span><span data-i="sFloors">Floors</span><span data-i="sDisplays">Displays</span><span data-i="sArt">Art</span><span data-i="sOrder">Order</span></div>
+        </div>
+      </div>
+      <div class="card qo-card"><div class="grow"><h3 data-i="qoCardT">Know what you need? Order in 60 seconds.</h3><p data-i="qoCardP">Quick order guides you one question at a time: brand, floor, quantity, displays and delivery. Save it as a P.O. or send it to your quote.</p></div><button class="btn btn-glow js-qo" type="button" data-i="qoStart">Start quick order</button></div>
+      <div class="grid g4">
+        <div class="card stat"><b class="num">2</b><span data-i="stBrands">Active brands</span></div>
+        <div class="card stat"><b class="num">9</b><span data-i="stColors">Colors in your lines</span></div>
+        <div class="card stat"><b class="num">1</b><span data-i="stTransit">Order in transit</span></div>
+        <div class="card stat"><b class="num">$3.18</b><span data-i="stPrice">Your best price / sq ft</span></div>
+      </div>
+      <div class="grid g2">
+        <div class="card">
+          <div class="head" style="margin-bottom:6px"><h3 data-i="todo">To do</h3><span class="pill warn">3</span></div>
+          <div id="todo"></div>
+        </div>
+        <div class="card">
+          <div class="head" style="margin-bottom:12px"><h3 data-i="activeOrder">Active order</h3><a href="#orders" class="pill dark" style="text-decoration:none">CR-1042</a></div>
+          <div class="map"><svg viewBox="0 0 400 150"><path d="M60 118 C150 110 210 60 330 34" stroke="#8B7658" stroke-width="2" stroke-dasharray="5 6" fill="none"/><circle cx="60" cy="118" r="7" fill="#141317"/><circle cx="330" cy="34" r="7" fill="#141317"/><circle cx="214" cy="74" r="9" fill="#D9C6A5" stroke="#141317" stroke-width="2"/><text x="40" y="142" font-family="Albert Sans" font-size="12" fill="#2A262C">Panamá</text><text x="306" y="22" font-family="Albert Sans" font-size="12" fill="#2A262C">Miami</text></svg></div>
+          <div style="display:flex;justify-content:space-between;margin-top:12px"><div><b data-i="inTransit">In transit</b><div class="note">Bloom Floors · 6 pallets</div></div><div style="text-align:right"><b class="num">Dec 4</b><div class="note">ETA Miami</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BRANDS -->
+    <section class="view" id="v-brands">
+      <div class="head"><div><span class="eyebrow" data-i="yourLines">Your private labels</span><h1 data-i="brandsTitle">Brands</h1></div><button class="btn btn-dark js-newbrand" type="button">+ <span data-i="createNew">Create new brand</span></button></div>
+      <div class="grid g3" id="brandGrid"></div>
+    </section>
+
+    <!-- BRAND DETAIL -->
+    <section class="view" id="v-brand"></section>
+
+    <!-- CATALOG -->
+    <section class="view" id="v-catalog">
+      <div class="head"><div><span class="eyebrow" data-i="factoryColl">Factory collections · Panamá</span><h1 data-i="catTitle">Pick the floors for your brand</h1></div>
+        <div class="note" data-i="catNote">Prices per sq ft, FOB Miami, by volume.</div></div>
+      <div class="filters" id="filters"></div>
+      <div class="grid g4" id="prodGrid"></div>
+    </section>
+
+    <!-- QUOTE -->
+    <section class="view" id="v-quote">
+      <div class="head"><div><span class="eyebrow" data-i="quoteFor">Quote for Marea Floors</span><h1 data-i="quoteTitle">Quote & order</h1></div><span class="pill" data-i="validDays">Valid 15 days</span></div>
+      <div class="qgrid">
+        <div class="grid" style="gap:16px">
+          <div class="card"><h3 style="margin-bottom:6px" data-i="floors">Floors</h3><div id="qFloors"></div></div>
+          <div class="card"><h3 style="margin-bottom:6px" data-i="displaysKit">Displays & labels</h3><p class="note" style="margin:0 0 6px" data-i="kitNote">Suggested kit for one showroom. Sizes from the CORE private label templates.</p><div id="qDisplays"></div></div>
+        </div>
+        <div class="grid" style="gap:16px;position:sticky;top:96px">
+          <div class="card calc-wrap">
+            <h3 data-i="calcTitle">Sq ft calculator</h3>
+            <div class="calc" style="margin-top:10px">
+              <label class="note" for="sqft" data-i="calcLabel">Project or stock size (sq ft)</label>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><input id="sqft" type="number" value="8000" min="0" class="num"><span id="calcOut" class="num" style="font-weight:600"></span></div>
+            </div>
+          </div>
+          <div class="card sum" id="qSum"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ORDERS -->
+    <section class="view" id="v-orders">
+      <div class="head"><div><span class="eyebrow" data-i="prodShip">Production & shipping</span><h1 data-i="ordersTitle">Orders</h1></div></div>
+      <div class="grid g2" id="orderGrid"></div>
+    </section>
+
+    <!-- ACCOUNT -->
+    <section class="view" id="v-account">
+      <div class="head"><div><span class="eyebrow">Coral Floors & Design LLC</span><h1 data-i="acctTitle">Account</h1></div></div>
+      <div class="grid g2">
+        <div class="card"><h3 data-i="companyH">Company</h3><div class="row" style="border:0"><div class="grow"><b>Coral Floors & Design LLC</b><div class="note">Flooring store · Doral, FL · Resale cert. on file</div></div><span class="pill ok" data-i="approved">Approved</span></div><div class="row"><div class="grow"><b data-i="priceLevel">Price level</b><div class="note">Partner · 5+ pallets</div></div></div><div class="row"><div class="grow"><b data-i="team">Team</b><div class="note">Daniela R. (owner) · Luis M. (buyer)</div></div><button class="btn btn-ghost btn-sm" type="button" data-i="invite">Invite</button></div></div>
+        <div class="card"><h3 data-i="payments">Payments</h3><div class="row" style="border:0"><div class="grow"><b>Stripe · ACH</b><div class="note">Chase •••• 4417</div></div><span class="pill" data-i="default">Default</span></div><div class="row"><div class="grow"><b data-i="wire">Wire transfer / Zelle</b><div class="note" data-i="wireNote">Confirmed by our team in 1 business day</div></div></div><div class="row"><div class="grow"><b data-i="docs">Documents</b><div class="note">W-9 · Private label agreement · Price list Nov 2026</div></div></div></div>
+      </div>
+    </section>
+  </main>
+  <nav class="bottomnav" id="bnav"></nav>
+</div>
+
+<button class="chat" type="button" id="chatBtn" style="display:none"><span class="avatar" style="width:30px;height:30px;font-size:13px">C</span><span data-i="chat">Ask Carlos</span></button>
+
+<section id="qo" role="dialog" aria-modal="true" aria-label="Quick order"><div class="orb o1"></div><div class="orb o2"></div><div class="qo-top"><div class="lg"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" aria-label="CORE" role="img" viewBox="0 0 639.65 292.32">
+  
+  <g transform="translate(41.6 0)">
+  <path d="M80.60000000000001 191.39999999999998Q64.8 191.39999999999998 51.3 185.89999999999998Q37.800000000000004 180.39999999999998 27.700000000000003 170.39999999999998Q17.6 160.39999999999998 12.0 147.09999999999997Q6.4 133.79999999999998 6.4 118.39999999999999Q6.4 102.99999999999999 12.0 89.69999999999999Q17.6 76.39999999999998 27.6 66.59999999999998Q37.6 56.79999999999998 51.10000000000001 51.29999999999998Q64.60000000000001 45.79999999999998 80.4 45.79999999999998Q97.2 45.79999999999998 110.30000000000001 51.19999999999999Q123.4 56.599999999999994 133.20000000000002 65.99999999999999L112.2 87.19999999999999Q106.60000000000001 81.19999999999999 98.70000000000002 77.79999999999998Q90.80000000000001 74.39999999999998 80.4 74.39999999999998Q71.2 74.39999999999998 63.5 77.49999999999997Q55.800000000000004 80.59999999999998 50.300000000000004 86.39999999999998Q44.800000000000004 92.19999999999999 41.7 100.39999999999998Q38.6 108.59999999999998 38.6 118.39999999999999Q38.6 128.39999999999998 41.7 136.59999999999997Q44.800000000000004 144.79999999999998 50.300000000000004 150.59999999999997Q55.800000000000004 156.39999999999998 63.5 159.59999999999997Q71.2 162.79999999999998 80.4 162.79999999999998Q91.2 162.79999999999998 99.2 159.39999999999998Q107.2 156.0 113.0 150.0L134.20000000000002 171.2Q124.0 180.6 110.9 186.0Q97.80000000000001 191.39999999999998 80.60000000000001 191.39999999999998Z" fill="#F6F2EA"/>
+  <path d="M220.22 45.18H220.22A73.42 73.42 0 0 1 281.06 77.48H159.39A73.42 73.42 0 0 1 220.22 45.18Z" fill="#F6F2EA"/>
+  <path d="M154.29 86.29H286.16A73.42 73.42 0 0 1 293.28 111.26H147.17A73.42 73.42 0 0 1 154.29 86.29Z" fill="#F6F2EA"/>
+  <path d="M146.81 120.07H293.63A73.42 73.42 0 0 1 276.64 165.59H163.81A73.42 73.42 0 0 1 146.81 120.07Z" fill="#D9C6A5"/>
+  <path d="M172.5 174.4H267.94A73.42 73.42 0 0 1 220.22 192.02H220.22A73.42 73.42 0 0 1 172.5 174.4Z" fill="#F6F2EA"/>
+  <path d="M320.248 189.2V47.99999999999997H377.84799999999996Q391.84799999999996 47.99999999999997 402.448 53.29999999999998Q413.048 58.599999999999994 419.048 67.99999999999999Q425.048 77.39999999999998 425.048 89.59999999999998Q425.048 101.99999999999999 419.048 111.29999999999998Q413.048 120.59999999999998 402.248 125.79999999999998Q396.248 128.79999999999998 389.048 130.0L434.248 189.2H397.048L354.84799999999996 131.0H351.64799999999997V189.2ZM351.64799999999997 72.39999999999998V107.79999999999998H374.048Q383.448 107.79999999999998 388.548 102.99999999999999Q393.64799999999997 98.19999999999999 393.64799999999997 89.99999999999999Q393.64799999999997 82.39999999999998 388.64799999999997 77.39999999999998Q383.64799999999997 72.39999999999998 374.248 72.39999999999998ZM448.648 189.2V47.99999999999997H549.048V74.99999999999999H480.048V103.99999999999999H543.048V130.2H480.048V162.0H550.048V189.2Z" fill="#F6F2EA"/>
+  </g>
+  <g transform="translate(48 244.32)"><path d="M7.287000000000001 -7.896000000000001Q8.211 -7.896000000000001 8.7885 -8.1795Q9.366000000000001 -8.463000000000001 9.66 -8.9985Q9.954 -9.534 9.954 -10.269Q9.954 -11.382000000000001 9.303 -12.0015Q8.652000000000001 -12.621 7.287000000000001 -12.621H4.032V-7.896000000000001ZM12.474 -10.269Q12.474 -9.471 12.201 -8.694Q11.928 -7.917000000000001 11.319 -7.2555000000000005Q10.71 -6.594 9.7125 -6.205500000000001Q8.715 -5.817 7.287000000000001 -5.817H4.032V0.0H1.5330000000000001V-14.700000000000001H7.287000000000001Q9.051 -14.700000000000001 10.1955 -14.101500000000001Q11.34 -13.503 11.907 -12.4845Q12.474 -11.466000000000001 12.474 -10.269ZM33.56100000000001 -14.700000000000001Q35.325 -14.700000000000001 36.469500000000004 -14.101500000000001Q37.614000000000004 -13.503 38.181000000000004 -12.4845Q38.748000000000005 -11.466000000000001 38.748000000000005 -10.269Q38.748000000000005 -9.471 38.47500000000001 -8.694Q38.202000000000005 -7.917000000000001 37.593 -7.2555000000000005Q36.98400000000001 -6.594 35.99700000000001 -6.216Q35.724000000000004 -6.111000000000001 35.43000000000001 -6.027L39.063 0.0H36.24900000000001L32.868 -5.817H30.306000000000004V0.0H27.807000000000006V-14.700000000000001ZM36.22800000000001 -10.269Q36.22800000000001 -11.361 35.577000000000005 -11.991Q34.926 -12.621 33.56100000000001 -12.621H30.306000000000004V-7.896000000000001H33.56100000000001Q34.48500000000001 -7.896000000000001 35.06250000000001 -8.1795Q35.64000000000001 -8.463000000000001 35.93400000000001 -8.9985Q36.22800000000001 -9.534 36.22800000000001 -10.269ZM54.375000000000014 -14.700000000000001H56.87400000000001V0.0H54.375000000000014ZM83.14800000000002 -14.700000000000001H85.79400000000003L80.31300000000002 0.0H77.39400000000002L71.93400000000003 -14.700000000000001H74.58000000000003L78.86400000000002 -2.5410000000000004ZM103.31100000000002 -3.591 102.05100000000003 0.0H99.48900000000003L104.69700000000003 -14.700000000000001H108.93900000000002L114.16800000000003 0.0H111.60600000000002L110.36700000000003 -3.591ZM107.21700000000003 -12.621H106.46100000000003L104.02500000000003 -5.649H109.63200000000003ZM128.09400000000002 -14.700000000000001H139.64400000000003V-12.621H135.12900000000002V0.0H132.63000000000002V-12.621H128.09400000000002ZM164.973 -12.621H157.43400000000003V-8.484H163.08300000000003V-6.405H157.43400000000003V-2.079H164.973V0.0H154.935V-14.700000000000001H164.973ZM202.02300000000002 -14.700000000000001V-2.079H208.61700000000002V0.0H199.524V-14.700000000000001ZM226.13400000000001 -3.591 224.874 0.0H222.312L227.52 -14.700000000000001H231.762L236.991 0.0H234.429L233.19 -3.591ZM230.04000000000002 -12.621H229.284L226.848 -5.649H232.455ZM260.36699999999996 -10.542Q260.36699999999996 -11.529 259.7265 -12.075Q259.086 -12.621 257.931 -12.621H254.172V-8.484H257.931Q259.086 -8.484 259.7265 -9.0195Q260.36699999999996 -9.555 260.36699999999996 -10.542ZM251.67299999999997 0.0V-14.700000000000001H258.183Q259.73699999999997 -14.700000000000001 260.77649999999994 -14.175Q261.816 -13.65 262.3515 -12.778500000000001Q262.887 -11.907 262.887 -10.857000000000001Q262.887 -9.891 262.53 -9.219000000000001Q262.173 -8.547 261.56399999999996 -8.148Q260.955 -7.7490000000000006 260.199 -7.581V-7.413Q261.102 -7.287000000000001 261.79499999999996 -6.888000000000001Q262.488 -6.489000000000001 262.866 -5.7540000000000004Q263.24399999999997 -5.019 263.24399999999997 -3.927Q263.24399999999997 -2.814 262.6665 -1.9215Q262.089 -1.0290000000000001 261.01800000000003 -0.5145000000000001Q259.947 0.0 258.45599999999996 0.0ZM254.172 -2.079H258.204Q259.401 -2.079 260.073 -2.625Q260.745 -3.1710000000000003 260.745 -4.2Q260.745 -5.292000000000001 260.02049999999997 -5.859Q259.296 -6.426 258.12 -6.426H254.172ZM288.846 -12.621H281.30699999999996V-8.484H286.95599999999996V-6.405H281.30699999999996V-2.079H288.846V0.0H278.808V-14.700000000000001H288.846ZM307.01399999999995 -14.700000000000001V-2.079H313.60799999999995V0.0H304.515V-14.700000000000001ZM347.55 -14.700000000000001H357.588V-12.621H350.049V-8.484H355.698V-6.405H350.049V0.0H347.55ZM375.37800000000004 -14.700000000000001V-2.079H381.97200000000004V0.0H372.8790000000001V-14.700000000000001ZM403.75200000000007 0.14700000000000002Q402.1980000000001 0.14700000000000002 400.8330000000001 -0.399Q399.4680000000001 -0.9450000000000001 398.44950000000006 -1.9425000000000003Q397.4310000000001 -2.9400000000000004 396.85350000000005 -4.3155Q396.27600000000007 -5.691000000000001 396.27600000000007 -7.3500000000000005Q396.27600000000007 -8.988000000000001 396.85350000000005 -10.363500000000002Q397.4310000000001 -11.739 398.44950000000006 -12.747Q399.4680000000001 -13.755 400.8330000000001 -14.301000000000002Q402.1980000000001 -14.847000000000001 403.75200000000007 -14.847000000000001Q405.3060000000001 -14.847000000000001 406.66050000000007 -14.301000000000002Q408.0150000000001 -13.755 409.0335000000001 -12.747Q410.0520000000001 -11.739 410.6295000000001 -10.363500000000002Q411.2070000000001 -8.988000000000001 411.2070000000001 -7.3500000000000005Q411.2070000000001 -5.691000000000001 410.6295000000001 -4.3155Q410.0520000000001 -2.9400000000000004 409.0335000000001 -1.9425000000000003Q408.0150000000001 -0.9450000000000001 406.66050000000007 -0.399Q405.3060000000001 0.14700000000000002 403.75200000000007 0.14700000000000002ZM403.75200000000007 -1.9740000000000002Q405.18000000000006 -1.9740000000000002 406.29300000000006 -2.6355000000000004Q407.40600000000006 -3.297 408.03600000000006 -4.5045Q408.66600000000005 -5.712000000000001 408.66600000000005 -7.3500000000000005Q408.66600000000005 -9.009 408.03600000000006 -10.206Q407.40600000000006 -11.403 406.29300000000006 -12.0645Q405.18000000000006 -12.726 403.75200000000007 -12.726Q402.32400000000007 -12.726 401.21100000000007 -12.0645Q400.09800000000007 -11.403 399.4575000000001 -10.206Q398.81700000000006 -9.009 398.81700000000006 -7.3500000000000005Q398.81700000000006 -5.712000000000001 399.4575000000001 -4.5045Q400.09800000000007 -3.297 401.21100000000007 -2.6355000000000004Q402.32400000000007 -1.9740000000000002 403.75200000000007 -1.9740000000000002ZM433.21800000000013 0.14700000000000002Q431.66400000000016 0.14700000000000002 430.29900000000015 -0.399Q428.93400000000014 -0.9450000000000001 427.9155000000002 -1.9425000000000003Q426.89700000000016 -2.9400000000000004 426.3195000000002 -4.3155Q425.74200000000013 -5.691000000000001 425.74200000000013 -7.3500000000000005Q425.74200000000013 -8.988000000000001 426.3195000000002 -10.363500000000002Q426.89700000000016 -11.739 427.9155000000002 -12.747Q428.93400000000014 -13.755 430.29900000000015 -14.301000000000002Q431.66400000000016 -14.847000000000001 433.21800000000013 -14.847000000000001Q434.77200000000016 -14.847000000000001 436.1265000000002 -14.301000000000002Q437.48100000000017 -13.755 438.4995000000001 -12.747Q439.51800000000014 -11.739 440.09550000000013 -10.363500000000002Q440.6730000000002 -8.988000000000001 440.6730000000002 -7.3500000000000005Q440.6730000000002 -5.691000000000001 440.09550000000013 -4.3155Q439.51800000000014 -2.9400000000000004 438.4995000000001 -1.9425000000000003Q437.48100000000017 -0.9450000000000001 436.1265000000002 -0.399Q434.77200000000016 0.14700000000000002 433.21800000000013 0.14700000000000002ZM433.21800000000013 -1.9740000000000002Q434.64600000000013 -1.9740000000000002 435.7590000000001 -2.6355000000000004Q436.8720000000001 -3.297 437.5020000000002 -4.5045Q438.1320000000002 -5.712000000000001 438.1320000000002 -7.3500000000000005Q438.1320000000002 -9.009 437.5020000000002 -10.206Q436.8720000000001 -11.403 435.7590000000001 -12.0645Q434.64600000000013 -12.726 433.21800000000013 -12.726Q431.79000000000013 -12.726 430.67700000000013 -12.0645Q429.56400000000014 -11.403 428.9235000000001 -10.206Q428.28300000000013 -9.009 428.28300000000013 -7.3500000000000005Q428.28300000000013 -5.712000000000001 428.9235000000001 -4.5045Q429.56400000000014 -3.297 430.67700000000013 -2.6355000000000004Q431.79000000000013 -1.9740000000000002 433.21800000000013 -1.9740000000000002ZM461.71800000000013 -14.700000000000001Q463.48200000000014 -14.700000000000001 464.62650000000014 -14.101500000000001Q465.77100000000013 -13.503 466.33800000000014 -12.4845Q466.90500000000014 -11.466000000000001 466.90500000000014 -10.269Q466.90500000000014 -9.471 466.6320000000002 -8.694Q466.35900000000015 -7.917000000000001 465.7500000000001 -7.2555000000000005Q465.14100000000013 -6.594 464.15400000000017 -6.216Q463.88100000000014 -6.111000000000001 463.58700000000016 -6.027L467.22000000000014 0.0H464.4060000000002L461.02500000000015 -5.817H458.46300000000014V0.0H455.96400000000017V-14.700000000000001ZM464.38500000000016 -10.269Q464.38500000000016 -11.361 463.73400000000015 -11.991Q463.08300000000014 -12.621 461.71800000000013 -12.621H458.46300000000014V-7.896000000000001H461.71800000000013Q462.64200000000017 -7.896000000000001 463.21950000000015 -8.1795Q463.79700000000014 -8.463000000000001 464.0910000000001 -8.9985Q464.38500000000016 -9.534 464.38500000000016 -10.269ZM482.5320000000002 -14.700000000000001H485.0310000000002V0.0H482.5320000000002ZM513.0060000000002 -14.700000000000001V0.0H510.4650000000002L503.6190000000002 -10.773000000000001V0.0H501.12000000000023V-14.700000000000001H503.68200000000024L510.5280000000002 -3.9690000000000003V-14.700000000000001ZM540.2040000000003 -10.122Q539.4270000000002 -11.508000000000001 538.2930000000002 -12.117Q537.1590000000002 -12.726 535.8780000000003 -12.726Q534.4920000000002 -12.726 533.3475000000002 -12.043500000000002Q532.2030000000002 -11.361 531.5415000000003 -10.153500000000001Q530.8800000000002 -8.946 530.8800000000002 -7.3500000000000005Q530.8800000000002 -5.7540000000000004 531.5310000000002 -4.5465Q532.1820000000002 -3.3390000000000004 533.3055000000002 -2.6565000000000003Q534.4290000000002 -1.9740000000000002 535.8150000000003 -1.9740000000000002Q536.8020000000002 -1.9740000000000002 537.6630000000002 -2.3100000000000005Q538.5240000000002 -2.6460000000000004 539.1750000000002 -3.2445000000000004Q539.8260000000002 -3.8430000000000004 540.2040000000003 -4.62V-6.090000000000001H535.9830000000003V-8.127H542.7030000000002V-4.473Q542.1990000000003 -3.1710000000000003 541.2015000000004 -2.1210000000000004Q540.2040000000003 -1.0710000000000002 538.8285000000003 -0.4620000000000001Q537.4530000000002 0.14700000000000002 535.7940000000002 0.14700000000000002Q534.2400000000002 0.14700000000000002 532.8855000000003 -0.399Q531.5310000000003 -0.9450000000000001 530.5125000000003 -1.9425000000000003Q529.4940000000003 -2.9400000000000004 528.9165000000003 -4.3155Q528.3390000000003 -5.691000000000001 528.3390000000003 -7.3500000000000005Q528.3390000000003 -8.988000000000001 528.9165000000003 -10.363500000000002Q529.4940000000003 -11.739 530.5125000000003 -12.747Q531.5310000000003 -13.755 532.8855000000003 -14.301000000000002Q534.2400000000002 -14.847000000000001 535.7940000000002 -14.847000000000001Q537.2010000000002 -14.847000000000001 538.5030000000003 -14.395500000000002Q539.8050000000003 -13.944 540.8340000000003 -13.062000000000001Q541.8630000000003 -12.180000000000001 542.4090000000002 -10.899000000000001Z" fill="#B9A27C"/></g>
+</svg></div><span class="pill" style="background:rgba(217,198,165,.16);color:var(--sand)">⚡ Quick order</span><span class="spacer" style="flex:1"></span><span id="qoCount" class="note num" style="color:#BDB4A6"></span><button class="iconbtn js-qoclose" type="button" aria-label="Close quick order" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:var(--cream)">✕</button></div><div class="qo-bar"><i id="qoBar"></i></div><div class="qo-main"><div id="qoQ"></div><aside class="qo-side" id="qoSide"></aside></div><div class="qo-foot"><button class="btn btn-line" type="button" id="qoBack">← Back</button><span class="spacer"></span><span class="enter">Press Enter ↵</span><span id="qoMini" class="num qo-mini"></span><button class="btn btn-glow" type="button" id="qoNext">Continue</button></div></section>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Product details"></aside>
+<div class="modal" id="modal"><div class="mbox" id="mbox" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- data (demo) ---------- */
+const PRODUCTS=[
+ {id:'q1',tone:'natural',coll:'Quick48+',type:'SPC',name:'Natural Oak',c:['#C9A57A','#A67F55'],mm:'5.5 + 1.5 IXPE',wl:'20 mil',size:'7.2" × 48"',box:23.6,pal:56,p:[3.69,3.39,3.18],tag:'Best seller'},
+ {id:'q2',tone:'light',coll:'Quick48+',type:'SPC',name:'Sand Dune',c:['#DCC7A4','#BFA27A'],mm:'5.5 + 1.5 IXPE',wl:'20 mil',size:'7.2" × 48"',box:23.6,pal:56,p:[3.69,3.39,3.18]},
+ {id:'q3',tone:'grey',coll:'Quick48+',type:'SPC',name:'Smoked Ash',c:['#8E8072','#6A5D51'],mm:'5.5 + 1.5 IXPE',wl:'20 mil',size:'7.2" × 48"',box:23.6,pal:56,p:[3.69,3.39,3.18]},
+ {id:'s1',tone:'light',coll:'Spirit XL',type:'SPC',name:'Coastal White',c:['#E8DFD0','#CFC2AD'],mm:'7 + 1.5 IXPE',wl:'22 mil',size:'9" × 60"',box:22.5,pal:50,p:[4.19,3.89,3.62],tag:'XL plank'},
+ {id:'s2',tone:'warm',coll:'Spirit XL',type:'SPC',name:'Honey Walnut',c:['#B07F4E','#8A5C33'],mm:'7 + 1.5 IXPE',wl:'22 mil',size:'9" × 60"',box:22.5,pal:50,p:[4.19,3.89,3.62]},
+ {id:'s3',tone:'dark',coll:'Spirit XL',type:'SPC',name:'Espresso',c:['#5B4433','#3D2C21'],mm:'7 + 1.5 IXPE',wl:'22 mil',size:'9" × 60"',box:22.5,pal:50,p:[4.19,3.89,3.62]},
+ {id:'p1',tone:'grey',coll:'Project XL',type:'SPC',name:'Greige Mist',c:['#B8AE9F','#9A8F7F'],mm:'5 + 1 IXPE',wl:'12 mil',size:'7" × 48"',box:23.3,pal:60,p:[2.79,2.59,2.42],tag:'Contractor'},
+ {id:'p2',tone:'natural',coll:'Project XL',type:'SPC',name:'Barnwood',c:['#9E8B73','#7A6750'],mm:'5 + 1 IXPE',wl:'12 mil',size:'7" × 48"',box:23.3,pal:60,p:[2.79,2.59,2.42]},
+ {id:'l1',tone:'natural',coll:'Core Lam',type:'Laminate',name:'Riviera Oak',c:['#C8AE88','#A88D66'],mm:'12 AC4',wl:'AC4',size:'7.6" × 48"',box:19.6,pal:48,p:[2.49,2.29,2.12]},
+ {id:'l2',tone:'grey',coll:'Core Lam',type:'Laminate',name:'Nordic Grey',c:['#A9A39A','#8C857B'],mm:'12 AC4',wl:'AC4',size:'7.6" × 48"',box:19.6,pal:48,p:[2.49,2.29,2.12]}
+];
+const DISPLAYS=[
+ {id:'sb',n:'Sample board front label',s:'3.47" × 7.79" · 250 × 561 px',p:1.50,q:24},
+ {id:'sbb',n:'Sample board back graphic',s:'31.5" × 21.5"',p:12.00,q:2},
+ {id:'ss',n:'Strap set label',s:'5.35" × 3.57" · 385 × 257 px',p:0.75,q:120},
+ {id:'rk',n:'Rack front graphic',s:'13" × 6.5"',p:5.00,q:2},
+ {id:'pk',n:'Design package · Pro',s:'Brand adaptation, 4 label formats, rack artwork',p:1499,q:1}
+];
+const state={
+  lang:'en', filter:'All', cart:{}, activeBrand:'marea', brandTab:'products',
+  brands:[
+    {id:'marea',name:'MAREA',full:'Marea Floors',bg:'#1F3B44',fg:'#F3E8D2',stage:3,items:[{pid:'q1',name:'Key Biscayne'},{pid:'q2',name:'South Beach'},{pid:'s2',name:'Coconut Grove'},{pid:'s1',name:'Coral Gables'}]},
+    {id:'bloom',name:'BLOOM',full:'Bloom Floors',bg:'#D9C6A5',fg:'#141317',stage:5,items:[{pid:'p1',name:'Brickell'},{pid:'p2',name:'Wynwood'},{pid:'q3',name:'Little Havana'},{pid:'l1',name:'Doral'},{pid:'l2',name:'Aventura'}]}
+  ]
+};
+/* default quote */
+state.cart={q1:{pal:3,brand:'marea'},s2:{pal:2,brand:'marea'}};
+
+/* ---------- i18n (ES for the main UI) ---------- */
+const ES={authEyebrow:'Pisos private label · Hechos en Panamá',authTitle:'Tu marca. Construida sobre nuestro core.',authSub:'Lanza tu propia línea de SPC y laminado con precio de fábrica, tus etiquetas y displays, con envío a Miami.',signUp:'Crear cuenta',logIn:'Entrar',createAcct:'Crea tu cuenta de empresa',createAcctSub:'Para tiendas de pisos, distribuidores, contratistas y diseñadores.',orEmail:'o con email',company:'Empresa',bizType:'Tipo de negocio',password:'Contraseña',continue:'Continuar',approvalNote:'Revisamos las cuentas nuevas en menos de 24 h. Mientras tanto puedes ver las colecciones.',rep:'Tu ejecutivo: Carlos · WhatsApp',welcome:'Hola de nuevo, Daniela',homeTitle:'Llevemos Marea al showroom',brandProgress:'Progreso de la marca',heroNext:'Siguiente: aprueba el label del sample board',heroP:'Diseño subió el proof v2 con tus notas. Apruébalo y la producción en Panamá arranca esta semana.',reviewProof:'Revisar proof',addFloors:'Agregar pisos',sBrand:'Marca',sFloors:'Pisos',sDisplays:'Displays',sArt:'Arte',sOrder:'Pedido',stBrands:'Marcas activas',stColors:'Colores en tus líneas',stTransit:'Pedido en tránsito',stPrice:'Tu mejor precio / sq ft',todo:'Pendientes',activeOrder:'Pedido activo',inTransit:'En tránsito',yourLines:'Tus private labels',brandsTitle:'Marcas',createNew:'Crear marca',factoryColl:'Colecciones de fábrica · Panamá',catTitle:'Elige los pisos para tu marca',catNote:'Precios por sq ft, FOB Miami, por volumen.',quoteFor:'Cotización para Marea Floors',quoteTitle:'Cotización y pedido',validDays:'Válida 15 días',floors:'Pisos',displaysKit:'Displays y etiquetas',kitNote:'Kit sugerido para un showroom. Medidas de las plantillas de private label CORE.',calcTitle:'Calculadora de sq ft',calcLabel:'Tamaño del proyecto o stock (sq ft)',prodShip:'Producción y envío',ordersTitle:'Pedidos',acctTitle:'Cuenta',approved:'Aprobada',priceLevel:'Nivel de precio',team:'Equipo',invite:'Invitar',payments:'Pagos',default:'Principal',wire:'Transferencia / Zelle',wireNote:'Nuestro equipo lo confirma en 1 día hábil',docs:'Documentos',chat:'Escríbele a Carlos',companyH:'Empresa',qoBtn:'Pedido rápido',qoCardT:'¿Sabes lo que necesitas? Pide en 60 segundos.',qoCardP:'El pedido rápido te guía pregunta por pregunta: marca, piso, cantidad, displays y entrega. Guárdalo como P.O. o envíalo a tu cotización.',qoStart:'Empezar pedido rápido',nQuick:'Pedido rápido',
+nHome:'Inicio',nBrands:'Marcas',nCatalog:'Catálogo',nQuote:'Cotización',nOrders:'Pedidos',nAccount:'Cuenta',quick:'Vista rápida',add:'Agregar a marca',all:'Todos',perSqft:'/ sq ft',fromPal:'desde 5 pallets'};
+const EN={};
+function t(k,fb){return state.lang==='es'&&ES[k]?ES[k]:(EN[k]||fb||k)}
+function applyI18n(){document.querySelectorAll('[data-i]').forEach(el=>{const k=el.dataset.i;if(!(k in EN))EN[k]=el.textContent;el.textContent=t(k)});document.documentElement.lang=state.lang;renderNav();render()}
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const money=(n,d=2)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const P=id=>PRODUCTS.find(p=>p.id===id);
+const texCache={};
+function plank(c,w=480,h=360,seed=1){
+  const key=c.join()+w+h+seed; if(texCache[key])return texCache[key];
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');
+  let s=seed*9301+49297;const r=()=>(s=(s*9301+49297)%233280)/233280;
+  const rows=6,ph=h/rows;
+  for(let i=0;i<rows;i++){
+    const off=r()*w;const g=x.createLinearGradient(0,0,w,0);
+    const shade=(r()-.5)*.16;
+    g.addColorStop(0,c[0]);g.addColorStop(.5,c[1]);g.addColorStop(1,c[0]);
+    x.fillStyle=g;x.fillRect(0,i*ph,w,ph);
+    x.fillStyle=shade>0?`rgba(255,255,255,${shade})`:`rgba(0,0,0,${-shade})`;x.fillRect(0,i*ph,w,ph);
+    for(let k=0;k<26;k++){x.strokeStyle=`rgba(40,25,10,${.04+r()*.08})`;x.lineWidth=.6+r()*1.2;x.beginPath();const yy=i*ph+r()*ph;x.moveTo(0,yy);
+      for(let xx=0;xx<=w;xx+=24){x.lineTo(xx,yy+Math.sin((xx+off)/(30+r()*40))*2.4)}x.stroke()}
+    x.fillStyle='rgba(20,15,10,.28)';x.fillRect(0,i*ph,w,1.2);
+    const j=(off%(w*.8))+w*.1;x.fillRect(j,i*ph,1.2,ph);
+  }
+  return texCache[key]=cv.toDataURL('image/jpeg',.82);
+}
+const ICONS={
+ home:'<path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',
+ brands:'<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><path d="M16.5 13v7M13 16.5h7"/>',
+ catalog:'<path d="M3 7h18M3 12h18M3 17h18"/><path d="M9 7v5M15 12v5M6 17v3M18 2v5"/>',
+ quote:'<path d="M5 7h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
+ orders:'<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>',
+ account:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'
+};
+const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg>`;
+function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),2400)}
+
+/* ---------- nav ---------- */
+const NAV=[['home','nHome','Home'],['brands','nBrands','Brands'],['catalog','nCatalog','Catalog'],['quote','nQuote','Quote'],['orders','nOrders','Orders'],['account','nAccount','Account']];
+function renderNav(){
+  const cur=currentView();
+  const cnt=Object.keys(state.cart).length;
+  $('#nav').innerHTML=`<a href="#" class="qo-nav js-qo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 3 4 14h7l-1 7 9-11h-7z"/></svg><span>${t('nQuick','Quick order')}</span></a>`+NAV.map(([k,i,f])=>`<a href="#${k}" ${cur===k||(cur==='brand'&&k==='brands')?'aria-current="page"':''}>${ic(k)}<span>${t(i,f)}</span>${k==='quote'&&cnt?`<span class="badge">${cnt}</span>`:''}</a>`).join('');
+  const bn=k=>{const n=NAV.find(x=>x[0]===k);return `<a href="#${k}" ${cur===k||(cur==='brand'&&k==='brands')?'aria-current="page"':''}>${ic(k)}<span>${t(n[1],n[2])}</span></a>`};
+  $('#bnav').innerHTML=bn('home')+bn('brands')+`<a href="#" class="bn-qo js-qo" aria-label="Quick order"><span class="fab"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 3 4 14h7l-1 7 9-11h-7z"/></svg></span><span>${t('nQuick','Quick')}</span></a>`+bn('catalog')+bn('orders');
+  $('#cartDot').textContent=cnt;
+}
+function currentView(){const h=location.hash.slice(1);return ['home','brands','brand','catalog','quote','orders','account'].includes(h)?h:'home'}
+
+/* ---------- views ---------- */
+function renderHome(){
+  const items=[
+    ['art','Approve sample board label · v2','Marea Floors · uploaded today','Review','#brand'],
+    ['quote','Pay 50% deposit for quote Q-2208','$21,946 deposit · Marea Floors','Pay','#quote'],
+    ['brands','Name 2 more colors for Marea','Suggested: Bal Harbour, Coconut Grove','Name','#catalog']];
+  $('#todo').innerHTML=items.map(([k,a,b,c,h])=>`<div class="task"><div class="ic">${ic(k==='art'?'brands':k)}</div><div class="grow"><b>${a}</b><div class="note">${b}</div></div><a href="${h}" class="btn btn-ghost btn-sm ${k==='art'?'js-goart':''}">${c}</a></div>`).join('');
+}
+function brandLogo(b,h=120,fs=26){return `<div class="brandlogo" style="background:${b.bg};color:${b.fg};height:${h}px;font-size:${fs}px">${b.name}</div>`}
+const STAGES=['Brand','Floors','Displays','Art','Order'];
+function renderBrands(){
+  $('#brandGrid').innerHTML=state.brands.map(b=>`
+   <article class="card brandcard" data-brand="${b.id}" tabindex="0">
+     ${brandLogo(b)}
+     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>${b.full}</h3><span class="pill ${b.stage>=5?'ok':'warn'}">${b.stage>=5?'In production':'Step '+(b.stage+1)+' · '+STAGES[b.stage]}</span></div>
+     <div class="swatches">${b.items.slice(0,6).map(i=>`<span style="background-image:url(${plank(P(i.pid).c,120,120,i.pid.charCodeAt(1))})" title="${i.name}"></span>`).join('')}</div>
+     <div class="note">${b.items.length} colors · ${[...new Set(b.items.map(i=>P(i.pid).coll))].join(', ')}</div>
+   </article>`).join('')+`<button class="newcard card js-newbrand" type="button"><div><div style="font-size:34px;line-height:1">+</div>${t('createNew','Create new brand')}<div class="note" style="margin-top:4px">3 steps · about 2 minutes</div></div></button>`;
+}
+function renderBrand(){
+  const b=state.brands.find(x=>x.id===state.activeBrand)||state.brands[0];
+  const tab=state.brandTab;
+  const prog=STAGES.map((s,i)=>`<div class="${i<b.stage?'done':i===b.stage?'now':''}">${s}</div>`).join('');
+  let body='';
+  if(tab==='products'){
+    body=b.items.map(i=>{const p=P(i.pid);return `<div class="row"><div class="thumb" style="background-image:url(${plank(p.c,140,140,i.pid.charCodeAt(1))})"></div><div class="grow"><b>${i.name}</b><div class="note">Base: ${p.coll} · ${p.name} · ${p.type} ${p.mm} mm</div></div><span class="pill">${p.size}</span></div>`}).join('')+`<div style="padding-top:14px"><a href="#catalog" class="btn btn-dark btn-sm">+ Add floor from catalog</a></div>`;
+  }else if(tab==='displays'){
+    body=DISPLAYS.slice(0,4).map(d=>`<div class="row"><div class="thumb" style="background:var(--linen);display:grid;place-items:center">${ic('brands')}</div><div class="grow"><b>${d.n}</b><div class="note">${d.s}</div></div><span class="pill ok">Included</span></div>`).join('');
+  }else if(tab==='art'){
+    body=`<div class="grid g2" style="margin-top:6px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="background:var(--linen);border-radius:16px;padding:22px;display:grid;place-items:center">
+          <div style="width:200px;aspect-ratio:250/561;background:${b.bg};border-radius:8px;color:${b.fg};display:flex;flex-direction:column;justify-content:space-between;padding:16px;font-family:var(--display);box-shadow:0 14px 30px -18px rgba(0,0,0,.6)">
+            <div style="font-weight:700;letter-spacing:.12em;font-size:20px">${b.name}</div>
+            <div style="height:180px;border-radius:4px;background-image:url(${plank(P(b.items[0].pid).c,200,260,3)});background-size:cover"></div>
+            <div><div style="font-size:16px;font-weight:600">${b.items[0].name}</div><div style="font-size:10px;opacity:.75;font-family:var(--body)">SPC · ${P(b.items[0].pid).mm} mm · ${P(b.items[0].pid).wl} · Waterproof</div></div>
+          </div>
+        </div>
+        <div class="note">Sample board front label · 250 × 561 px · proof v2</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span class="pill warn" style="align-self:flex-start">Waiting for your approval</span>
+        <h3>Sample board label · v2</h3>
+        <div class="card" style="padding:14px;background:var(--cream)"><b style="font-size:13px">Design team · today</b><div class="note">Updated per your notes: bigger color name, specs in one line, logo spacing.</div></div>
+        <div class="card" style="padding:14px"><b style="font-size:13px">You · v1</b><div class="note">Make the color name bigger and add "Waterproof".</div></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-dark js-approve" type="button">Approve proof</button><button class="btn btn-ghost js-changes" type="button">Request changes</button></div>
+      </div></div>`;
+  }else{
+    body=`<div class="row"><div class="grow"><b>Quote Q-2208</b><div class="note">5 pallets · displays kit · created Nov 12</div></div><a href="#quote" class="btn btn-ghost btn-sm">Open</a></div>`;
+  }
+  $('#v-brand').innerHTML=`
+   <div class="head"><div style="display:flex;gap:16px;align-items:center"><div style="width:84px">${brandLogo(b,84,15)}</div><div><a href="#brands" class="note" style="text-decoration:none">← Brands</a><h1>${b.full}</h1></div></div>
+     <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-ghost" href="#catalog">+ Add floors</a><a class="btn btn-dark" href="#quote">Get quote</a></div></div>
+   <div class="card"><div class="progress">${prog}</div></div>
+   <div class="card"><div class="tabs" role="tablist">${[['products','Products'],['displays','Displays'],['art','Art & approvals'],['orders','Orders']].map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-tab="${k}" type="button">${l}${k==='art'?' <span class="pill warn" style="padding:1px 7px">1</span>':''}</button>`).join('')}</div><div style="padding-top:8px">${body}</div></div>`;
+}
+function renderCatalog(){
+  const types=['All','SPC','Laminate','Quick48+','Spirit XL','Project XL'];
+  $('#filters').innerHTML=types.map(f=>`<button class="chip" type="button" aria-pressed="${state.filter===f}" data-f="${f}">${f==='All'?t('all','All'):f}</button>`).join('');
+  const q=($('#q').value||'').toLowerCase();
+  const list=PRODUCTS.filter(p=>(state.filter==='All'||p.type===state.filter||p.coll===state.filter)&&(!q||(p.name+p.coll+p.type).toLowerCase().includes(q)));
+  $('#prodGrid').innerHTML=list.map(p=>`
+   <article class="prod">
+     <div class="img" style="background-image:url(${plank(p.c,480,360,p.id.charCodeAt(1))})">${p.tag?`<span class="pill">${p.tag}</span>`:''}</div>
+     <div class="body"><span class="eyebrow">${p.coll} · ${p.type}</span><h3>${p.name}</h3><div class="note">${p.mm} mm · ${p.wl} · ${p.size}</div>
+       <div class="price"><span><b class="num">${money(p.p[2])}</b> <span class="note">${t('perSqft','/ sq ft')}</span></span><span class="note">${t('fromPal','from 5 pallets')}</span></div></div>
+     <div class="acts"><button class="btn btn-ghost btn-sm" data-qv="${p.id}" type="button">${t('quick','Quick view')}</button><button class="btn btn-dark btn-sm" data-add="${p.id}" type="button">${t('add','Add to brand')}</button></div>
+   </article>`).join('')||'<p class="muted">No floors match that search.</p>';
+}
+function lineTotal(id){const p=P(id),l=state.cart[id];const sq=l.pal*p.pal*p.box;const price=l.pal>=5?p.p[2]:l.pal>=3?p.p[1]:p.p[0];return{sq,price,tot:sq*price}}
+function renderQuote(){
+  const ids=Object.keys(state.cart);
+  $('#qFloors').innerHTML=ids.length?ids.map(id=>{const p=P(id),l=state.cart[id],x=lineTotal(id);const b=state.brands.find(b=>b.id===l.brand);const nm=(b&&b.items.find(i=>i.pid===id)||{}).name;return `
+    <div class="row"><div class="thumb" style="background-image:url(${plank(p.c,140,140,id.charCodeAt(1))})"></div>
+     <div class="grow"><b>${nm||p.name}</b> <span class="note">· ${b?b.full:''}</span><div class="note num">${p.coll} ${p.name} · ${Math.round(x.sq).toLocaleString()} sq ft · ${l.pal*p.pal} boxes · ${money(x.price)}/sq ft</div></div>
+     <div class="qty"><button type="button" data-dec="${id}" aria-label="Fewer pallets">−</button><span class="num">${l.pal}</span><button type="button" data-inc="${id}" aria-label="More pallets">+</button></div>
+     <b class="num" style="min-width:92px;text-align:right">${money(x.tot,0)}</b></div>`}).join('')+`<p class="note" style="margin:10px 0 0">Price drops at 3 and 5 pallets per color. 1 pallet = ${P(ids[0]).pal} boxes.</p>`:'<p class="muted">Your quote is empty. Add floors from the catalog.</p>';
+  $('#qDisplays').innerHTML=DISPLAYS.map(d=>`<div class="row"><div class="grow"><b>${d.n}</b><div class="note">${d.s}</div></div><span class="note num">${d.q} × ${money(d.p)}</span><b class="num" style="min-width:92px;text-align:right">${money(d.q*d.p,0)}</b></div>`).join('');
+  const floors=ids.reduce((s,id)=>s+lineTotal(id).tot,0),disp=DISPLAYS.reduce((s,d)=>s+d.q*d.p,0),pal=ids.reduce((s,id)=>s+state.cart[id].pal,0),freight=pal*165,tot=floors+disp+freight;
+  $('#qSum').innerHTML=`<h3 style="margin-bottom:8px">Summary</h3><div><span>Floors · ${pal} pallets</span><b class="num">${money(floors,0)}</b></div><div><span>Displays & design</span><b class="num">${money(disp,0)}</b></div><div><span>Freight Panamá → Miami (est.)</span><b class="num">${money(freight,0)}</b></div><div class="tot"><span>Total</span><span class="num">${money(tot,0)}</span></div><div class="note">50% deposit to start production: <b class="num">${money(tot/2,0)}</b></div><div class="note">Production 3–4 weeks + transit 7–10 days</div><button class="btn btn-dark js-pay" type="button" style="margin-top:12px;width:100%" ${ids.length?'':'disabled'}>Pay deposit & place order</button><button class="btn btn-ghost js-pdf" type="button" style="margin-top:8px;width:100%">Send quote PDF to my email</button>`;
+  calc();
+}
+function calc(){const v=+$('#sqft').value||0;const p=P(Object.keys(state.cart)[0]||'q1');const boxes=Math.ceil(v*1.07/p.box);const pal=(boxes/p.pal);$('#calcOut').textContent=`= ${boxes} boxes · ${pal.toFixed(1)} pallets (${p.coll}, +7% waste)`}
+function renderOrders(){
+  const st=[['Art approved','Nov 3'],['In production · Panamá','Nov 5 – Nov 21'],['Shipped · container MSKU 4021','Nov 24'],['Customs · Port of Miami','ETA Dec 2'],['Delivered to your warehouse','ETA Dec 4']];
+  const o=(name,code,brand,now,pal)=>`<div class="card"><div class="head" style="margin-bottom:14px"><div><span class="eyebrow">${code}</span><h3>${name}</h3><div class="note">${brand} · ${pal} pallets</div></div><span class="pill ${now>=4?'ok':'warn'}">${st[now][0].split(' ·')[0]}</span></div><div class="timeline">${st.map((s,i)=>`<div class="tl ${i<now?'done':i===now?'now':''}"><i></i><div><b>${s[0]}</b></div><small class="num">${s[1]}</small></div>`).join('')}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" type="button">Invoice</button><button class="btn btn-ghost btn-sm" type="button">Packing list</button><button class="btn btn-ghost btn-sm js-reorder" type="button">Reorder</button></div></div>`;
+  $('#orderGrid').innerHTML=(state.newOrder?o('Marea launch order','CR-1051','Marea Floors',1,state.newOrder):'')+o('Bloom restock','CR-1042','Bloom Floors',2,6)+o('Bloom launch order','CR-0988','Bloom Floors',4,10);
+}
+function render(){
+  const v=currentView();
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  ({home:renderHome,brands:renderBrands,brand:renderBrand,catalog:renderCatalog,quote:renderQuote,orders:renderOrders})[v]?.();
+}
+
+/* ---------- quick view & add to brand ---------- */
+function openDrawer(id,mode){
+  const p=P(id);
+  const brandOpts=state.brands.map(b=>`<option value="${b.id}" ${b.id===state.activeBrand?'selected':''}>${b.full}</option>`).join('');
+  $('#drawer').innerHTML=`<div class="dh"><div><span class="eyebrow">${p.coll} · ${p.type}</span><h2>${p.name}</h2></div><button class="iconbtn js-close" type="button" aria-label="Close">✕</button></div>
+   <div class="db">
+    ${mode==='add'?'':`<div class="bigimg" style="background-image:url(${plank(p.c,720,450,p.id.charCodeAt(1))})"></div>
+    <div class="specs"><div><small>Thickness</small><b>${p.mm} mm</b></div><div><small>Wear layer</small><b>${p.wl}</b></div><div><small>Plank</small><b>${p.size}</b></div><div><small>Sq ft / box</small><b class="num">${p.box}</b></div><div><small>Boxes / pallet</small><b class="num">${p.pal}</b></div><div><small>Sq ft / pallet</small><b class="num">${Math.round(p.box*p.pal).toLocaleString()}</b></div></div>
+    <div><h3 style="margin-bottom:8px">Price per sq ft</h3><div class="tiers"><div><b class="num">${money(p.p[0])}</b><small>1–2 pallets</small></div><div><b class="num">${money(p.p[1])}</b><small>3–4 pallets</small></div><div class="best"><b class="num">${money(p.p[2])}</b><small>5+ pallets</small></div></div></div>`}
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <h3>Add to your brand</h3>
+      <div class="field"><label for="selBrand">Brand</label><select id="selBrand">${brandOpts}</select></div>
+      <div class="field"><label for="colorName">Your color name</label><input id="colorName" value="${({q1:'Bal Harbour',q2:'Sunny Isles',q3:'Midtown',s1:'Coral Gables',s2:'Coconut Grove',s3:'Brickell Night',p1:'Doral Mist',p2:'Hialeah',l1:'Riviera',l2:'Pinecrest'})[p.id]}"></div>
+      <div class="note">This is the name printed on labels, boxes and your catalog. The factory code stays on the back label.</div>
+    </div>
+   </div>
+   <div class="df"><button class="btn btn-ghost js-close" type="button">Cancel</button><button class="btn btn-dark js-confirmadd" data-id="${id}" type="button">Add to brand</button></div>`;
+  $('#drawer').classList.add('on');$('#scrim').classList.add('on');
+}
+function closeAll(){$('#drawer').classList.remove('on');$('#scrim').classList.remove('on');$('#modal').classList.remove('on')}
+
+/* ---------- create brand wizard ---------- */
+const wiz={step:0,name:'Lumen Floors',logo:'design',pal:0};
+const PALS=[['Coastal','#1F3B44','#F3E8D2','#C9A57A'],['Noir','#141317','#F6F2EA','#D9C6A5'],['Terra','#6B3E2E','#F2E6D8','#C98F5E'],['Fresh','#2F4A3A','#EEF1E6','#B6C49A']];
+function renderWiz(){
+  const s=wiz.step;let body='';
+  if(s===0)body=`<span class="eyebrow">Step 1 of 3</span><h2>What's your brand called?</h2><div class="field"><label for="wName">Brand name</label><input id="wName" value="${wiz.name}"></div><p class="note">You can add more brands later. Each brand has its own floors, labels and displays.</p>`;
+  if(s===1)body=`<span class="eyebrow">Step 2 of 3</span><h2>Do you have a logo?</h2><div class="opt"><button type="button" data-logo="upload" aria-pressed="${wiz.logo==='upload'}"><b>Yes, I'll upload it</b><small>SVG, AI or PDF</small></button><button type="button" data-logo="design" aria-pressed="${wiz.logo==='design'}"><b>Design it for me</b><small>New identity from $400</small></button></div>`;
+  if(s===2)body=`<span class="eyebrow">Step 3 of 3</span><h2>Pick a starting style</h2><div class="opt palettes">${PALS.map((p,i)=>`<button type="button" data-pal="${i}" aria-pressed="${wiz.pal===i}"><i><b style="background:${p[1]}"></b><b style="background:${p[2]};border:1px solid var(--line)"></b><b style="background:${p[3]}"></b></i><span><b>${p[0]}</b></span></button>`).join('')}</div><div class="brandlogo" style="background:${PALS[wiz.pal][1]};color:${PALS[wiz.pal][2]}">${wiz.name.split(' ')[0].toUpperCase()}</div><p class="note">Our design team refines it with you. This is just a starting point.</p>`;
+  $('#mbox').innerHTML=`<div class="wiz-steps">${[0,1,2].map(i=>`<span class="${i<=s?'on':''}"></span>`).join('')}</div>${body}<div style="display:flex;gap:10px;justify-content:space-between"><button class="btn btn-ghost" type="button" id="wBack">${s?'Back':'Cancel'}</button><button class="btn btn-dark" type="button" id="wNext">${s<2?'Continue':'Create brand'}</button></div>`;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('button,a,[data-brand]');if(!el)return;
+  if(el.matches('.js-enter')){enter();return}
+  if(el.id==='tabSignup'||el.id==='tabLogin'){const login=el.id==='tabLogin';$('#tabSignup').setAttribute('aria-pressed',!login);$('#tabLogin').setAttribute('aria-pressed',login);$('#fCompany').style.display=$('#fType').style.display=login?'none':'';$('#authH').textContent=login?(state.lang==='es'?'Bienvenido de nuevo':'Welcome back'):t('createAcct');return}
+  if(el.id==='lEN'||el.id==='lES'){state.lang=el.id==='lES'?'es':'en';$('#lEN').setAttribute('aria-pressed',state.lang==='en');$('#lES').setAttribute('aria-pressed',state.lang==='es');applyI18n();return}
+  if(el.dataset.brand){state.activeBrand=el.dataset.brand;state.brandTab='products';location.hash='brand';return}
+  if(el.matches('.js-goart')){e.preventDefault();state.activeBrand='marea';state.brandTab='art';location.hash==='#brand'?render():location.hash='brand';return}
+  if(el.dataset.tab){state.brandTab=el.dataset.tab;render();return}
+  if(el.dataset.f){state.filter=el.dataset.f;render();return}
+  if(el.dataset.qv){openDrawer(el.dataset.qv,'qv');return}
+  if(el.dataset.add){openDrawer(el.dataset.add,'add');return}
+  if(el.matches('.js-close')){closeAll();return}
+  if(el.matches('.js-confirmadd')){const id=el.dataset.id,bid=$('#selBrand').value,nm=$('#colorName').value||P(id).name;const b=state.brands.find(x=>x.id===bid);if(!b.items.find(i=>i.pid===id))b.items.push({pid:id,name:nm});else b.items.find(i=>i.pid===id).name=nm;state.cart[id]=state.cart[id]||{pal:1,brand:bid};closeAll();renderNav();render();toast(`"${nm}" added to ${b.full} and your quote`);return}
+  if(el.dataset.inc){state.cart[el.dataset.inc].pal++;render();return}
+  if(el.dataset.dec){const l=state.cart[el.dataset.dec];l.pal--;if(l.pal<=0)delete state.cart[el.dataset.dec];renderNav();render();return}
+  if(el.matches('.js-approve')){const b=state.brands.find(x=>x.id===state.activeBrand);b.stage=Math.max(b.stage,4);state.brandTab='products';render();toast('Proof approved · production can start');return}
+  if(el.matches('.js-changes')){toast('Comment box opens here · the design team gets notified');return}
+  if(el.matches('.js-pdf')){toast('Quote PDF sent to daniela@coralfloors.com (demo)');return}
+  if(el.matches('.js-pay')){state.newOrder=Object.values(state.cart).reduce((s,l)=>s+l.pal,0);state.cart={};const b=state.brands.find(x=>x.id==='marea');b.stage=5;renderNav();location.hash='orders';toast('Deposit received · order CR-1051 created');return}
+  if(el.matches('.js-reorder')){state.cart={p1:{pal:3,brand:'bloom'},p2:{pal:3,brand:'bloom'}};renderNav();location.hash='quote';toast('Same floors added · edit quantities');return}
+  if(el.matches('.js-newbrand')){wiz.step=0;renderWiz();$('#modal').classList.add('on');$('#scrim').classList.add('on');return}
+  if(el.id==='wBack'){if(wiz.step===0)closeAll();else{wiz.step--;renderWiz()}return}
+  if(el.id==='wNext'){if(wiz.step===0)wiz.name=$('#wName').value||'My Brand';if(wiz.step<2){wiz.step++;renderWiz();return}
+    const p=PALS[wiz.pal];const id='b'+Date.now();state.brands.push({id,name:wiz.name.split(' ')[0].toUpperCase(),full:wiz.name,bg:p[1],fg:p[2],stage:1,items:[]});state.activeBrand=id;closeAll();location.hash='catalog';toast(`${wiz.name} created · now pick its floors`);return}
+  if(el.dataset.logo){wiz.logo=el.dataset.logo;renderWiz();return}
+  if(el.dataset.pal){wiz.pal=+el.dataset.pal;renderWiz();return}
+  if(el.id==='chatBtn'){toast('Carlos usually replies in 5 min · WhatsApp or chat');return}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.brand)e.target.click()});
+$('#scrim').addEventListener('click',closeAll);
+$('#authForm').addEventListener('submit',e=>{e.preventDefault();enter()});
+$('#q').addEventListener('input',()=>{if(currentView()!=='catalog')location.hash='catalog';else render()});
+$('#sqft').addEventListener('input',calc);
+window.addEventListener('hashchange',()=>{renderNav();render();$('main').scrollTop=0;window.scrollTo(0,0)});
+function enter(){$('#auth').style.display='none';$('#app').classList.add('on');$('#chatBtn').style.display='';if(!location.hash)location.hash='home';renderNav();render()}
+
+
+/* ---------- QUICK ORDER: one question per screen ---------- */
+const QO_STEPS=['brand','type','tone','color','qty','displays','delivery','review'];
+const KITS=[{id:'none',n:'No displays',d:'Floors only',p:0},{id:'starter',n:'Starter kit',d:'Strap set labels + sample board labels for your colors',p:0},{id:'showroom',n:'Showroom kit',d:'Labels, 2 sample board back graphics, rack graphic + Design Pro',p:0}];
+const qo={step:0,brand:null,type:null,tone:'any',colors:[],qty:{},kit:'starter',ship:'pickup',day:2};
+function kitPrice(id,n){if(id==='none'||!n)return 0;const c=n;return id==='starter'?c*(12*1.5+60*0.75):c*(12*1.5+60*0.75)+2*12+2*5+1499}
+function bizDays(){const out=[];const d=new Date(2026,11,4);while(out.length<5){if(d.getDay()%6){out.push(new Date(d))}d.setDate(d.getDate()+1)}return out}
+function qoLines(){return qo.colors.map(id=>{const p=P(id);const sq=+qo.qty[id]||0;const boxes=Math.ceil(sq/p.box);const pal=boxes/p.pal;const price=pal>=5?p.p[2]:pal>=3?p.p[1]:p.p[0];return{p,sq,boxes,pal,price,tot:boxes*p.box*price}})}
+function qoTotals(){const L=qoLines();const floors=L.reduce((s,l)=>s+l.tot,0);const pal=L.reduce((s,l)=>s+Math.ceil(l.pal),0);const kit=kitPrice(qo.kit,qo.colors.length);const ship=qo.ship==='delivery'?pal*95:0;return{L,floors,pal,kit,ship,freight:pal*165,total:floors+kit+ship+pal*165}}
+function openQO(){Object.assign(qo,{step:0,brand:state.activeBrand,type:null,tone:'any',colors:[],qty:{},kit:'starter',ship:'pickup',day:2});$('#qo').classList.add('on');document.body.style.overflow='hidden';renderQO()}
+function closeQO(){$('#qo').classList.remove('on');document.body.style.overflow=''}
+function qoValid(){const s=QO_STEPS[qo.step];if(s==='brand')return !!qo.brand;if(s==='type')return !!qo.type;if(s==='color')return qo.colors.length>0;if(s==='qty')return qo.colors.every(id=>+qo.qty[id]>0);return true}
+function qoPool(){let l=PRODUCTS.filter(p=>p.type===qo.type);const f=l.filter(p=>qo.tone==='any'||p.tone===qo.tone);return f.length?f:l}
+function opt(attr,val,on,inner,i){return `<button type="button" class="qo-opt" ${attr}="${val}" aria-pressed="${on}">${i!=null?`<span class="kbd">${String.fromCharCode(65+i)}</span>`:''}${inner}</button>`}
+function renderQO(){
+  const s=QO_STEPS[qo.step],n=QO_STEPS.length;
+  $('#qoBar').style.width=((qo.step+1)/n*100)+'%';
+  $('#qoCount').textContent=`${qo.step+1} / ${n}`;$('#qoMini').textContent=money(qoTotals().total,0);
+  let html='';
+  if(s==='brand'){html=`<span class="k">1 · Brand</span><h2>Which brand is this order for?</h2><p class="hint">Everything you pick will carry this brand's labels.</p><div class="qo-opts">${state.brands.map((b,i)=>opt('data-qb',b.id,qo.brand===b.id,`<div class="brandlogo" style="background:${b.bg};color:${b.fg};height:70px;font-size:18px">${b.name}</div><b>${b.full}</b><small>${b.items.length} colors</small>`,i)).join('')}${opt('data-qb','__new',false,`<div class="brandlogo" style="height:70px;font-size:28px;background:rgba(255,255,255,.06);color:var(--sand);border:1px dashed rgba(217,198,165,.5)">+</div><b>New brand</b><small>Create it in 3 steps</small>`,state.brands.length)}</div>`}
+  if(s==='type'){html=`<span class="k">2 · Floor type</span><h2>What kind of floor?</h2><div class="qo-opts">${[['SPC','Rigid core · 100% waterproof','Kitchens, baths, rentals, commercial'],['Laminate','12 mm · AC4','Living areas, best value per sq ft']].map((x,i)=>opt('data-qt',x[0],qo.type===x[0],`<div class="sw" style="background-image:url(${plank(PRODUCTS.find(p=>p.type===x[0]).c,300,140,i+5)})"></div><b>${x[0]}</b><small>${x[1]}</small><small>${x[2]}</small>`,i)).join('')}</div>`}
+  if(s==='tone'){const T=[['any','Show me all',['#C9A57A','#8E8072','#5B4433']],['light','Light',['#E8DFD0','#DCC7A4','#CFC2AD']],['natural','Natural',['#C9A57A','#C8AE88','#9E8B73']],['warm','Warm',['#B07F4E','#A67F55','#8A5C33']],['grey','Grey & greige',['#B8AE9F','#A9A39A','#8E8072']],['dark','Dark',['#5B4433','#3D2C21','#6A5D51']]];
+    html=`<span class="k">3 · Look</span><h2>What tone are your customers asking for?</h2><div class="qo-opts">${T.map((x,i)=>opt('data-qtone',x[0],qo.tone===x[0],`<div class="tone">${x[2].map(c=>`<b style="background:${c}"></b>`).join('')}</div><b>${x[1]}</b>`,i)).join('')}</div>`}
+  if(s==='color'){html=`<span class="k">4 · Colors</span><h2>Pick one or more colors.</h2><p class="hint">Tap to select. You'll name them for your brand later.</p><div class="qo-opts">${qoPool().map((p,i)=>opt('data-qc',p.id,qo.colors.includes(p.id),`<div class="sw" style="background-image:url(${plank(p.c,300,140,p.id.charCodeAt(1))})"></div><b>${p.name}</b><small>${p.coll} · ${p.size}</small><small class="num">from ${money(p.p[2])}/sq ft</small>`,i)).join('')}</div>`}
+  if(s==='qty'){html=`<span class="k">5 · Quantity</span><h2>How much do you need?</h2><p class="hint">Type sq ft or tap a pallet size. We round up to full boxes.</p><div class="qo-qty">${qoLines().map(l=>`<div class="qo-line"><div class="thumb" style="background-image:url(${plank(l.p.c,140,140,l.p.id.charCodeAt(1))})"></div><div><b>${l.p.name}</b> <small style="color:#BDB4A6">${l.p.coll}</small><div style="display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap"><input type="number" min="0" class="num" data-qq="${l.p.id}" value="${qo.qty[l.p.id]||''}" placeholder="sq ft" aria-label="Square feet for ${l.p.name}"><small class="num" style="color:#CFC6B8">${l.sq?`${l.boxes} boxes · ${l.pal.toFixed(1)} pallets · ${money(l.price)}/sq ft`:''}</small></div><div class="pre">${[1,3,5].map(k=>`<button type="button" data-qpre="${l.p.id}:${k}">${k} pallet${k>1?'s':''}</button>`).join('')}</div></div><b class="num">${l.sq?money(l.tot,0):''}</b></div>`).join('')}</div><div class="qo-note">Price drops at 3 and 5 pallets per color.</div>`}
+  if(s==='displays'){html=`<span class="k">6 · Displays</span><h2>Do you need displays with your brand?</h2><div class="qo-opts">${KITS.map((k,i)=>opt('data-qk',k.id,qo.kit===k.id,`<b>${k.n}</b><small>${k.d}</small><small class="num" style="color:var(--sand);font-weight:600">${k.id==='none'?'$0':money(kitPrice(k.id,qo.colors.length),0)}</small>`,i)).join('')}</div>`}
+  if(s==='delivery'){const days=bizDays();html=`<span class="k">7 · Delivery</span><h2>How do you want to receive it?</h2><div class="qo-opts">${opt('data-qs','pickup',qo.ship==='pickup','<b>Pick up in Miami</b><small>Our warehouse in Doral · free</small>',0)}${opt('data-qs','delivery',qo.ship==='delivery','<b>Deliver to my warehouse</b><small>Liftgate truck · South Florida</small>',1)}</div>
+    ${qo.ship==='pickup'?`<b style="margin-top:6px">Which day will you pick it up?</b><div class="qo-days">${days.map((d,i)=>`<button type="button" data-qd="${i}" aria-pressed="${qo.day===i}">${d.toLocaleDateString('en-US',{weekday:'short'})}<small>${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</small></button>`).join('')}</div><div class="qo-note">Free storage for 5 business days after arrival. After that, $25 per pallet per day. We'll remind you by WhatsApp the day before.</div>`:`<div class="qo-note">Delivery estimate: $95 per pallet in South Florida. We'll call to schedule a 2-hour window.</div>`}`}
+  if(s==='review'){const T=qoTotals();const b=state.brands.find(x=>x.id===qo.brand);html=`<span class="k">8 · Review</span><h2>Your order is ready.</h2><div class="qo-review">${T.L.map(l=>`<div class="row"><div class="thumb" style="background-image:url(${plank(l.p.c,140,140,l.p.id.charCodeAt(1))})"></div><div class="grow"><b>${l.p.name}</b><div class="note num">${l.sq.toLocaleString()} sq ft · ${l.boxes} boxes · ${b?b.full:''}</div></div><b class="num">${money(l.tot,0)}</b></div>`).join('')}</div><div class="qo-actions"><button class="btn btn-glow" type="button" id="qoToQuote">Add to my quote</button><button class="btn btn-line" type="button" id="qoPO">Save as P.O.</button><button class="btn btn-line" type="button" id="qoRep">Send to my rep</button></div><p class="hint" style="margin:0">A P.O. holds these prices for 15 days for your project. Nothing is charged yet.</p>`}
+  $('#qoQ').innerHTML=`<div class="qo-q">${html}</div>`;
+  const T=qoTotals();const b=state.brands.find(x=>x.id===qo.brand);
+  $('#qoSide').innerHTML=`<span class="k" style="color:var(--oat);font-size:12px;font-weight:600;letter-spacing:.12em">YOUR ORDER</span>
+    <div class="l"><span>Brand</span><b>${b?b.full:'—'}</b></div><div class="l"><span>Type</span><b>${qo.type||'—'}</b></div>
+    <div class="l"><span>Colors</span><b>${qo.colors.map(id=>P(id).name).join(', ')||'—'}</b></div>
+    <div class="l"><span>Floors · ${T.pal} pallets</span><b class="num">${money(T.floors,0)}</b></div>
+    <div class="l"><span>Displays</span><b class="num">${money(T.kit,0)}</b></div>
+    <div class="l"><span>Freight Panamá → Miami</span><b class="num">${money(T.freight,0)}</b></div>
+    <div class="l"><span>${qo.ship==='pickup'?'Pickup · Doral':'Delivery'}</span><b class="num">${qo.ship==='pickup'?'Free':money(T.ship,0)}</b></div>
+    <div class="t"><span>Total</span><span class="num">${money(T.total,0)}</span></div>`;
+  $('#qoBack').style.visibility=qo.step?'visible':'hidden';
+  $('#qoNext').style.display=s==='review'?'none':'';
+  $('#qoNext').disabled=!qoValid();$('#qoNext').style.opacity=qoValid()?1:.45;
+  $('.qo-foot .enter').style.display=s==='review'?'none':'';
+}
+function qoNext(){if(!qoValid())return;if(qo.step<QO_STEPS.length-1){qo.step++;renderQO()}}
+function qoPick(sel){const b=document.querySelector(sel);return b}
+document.addEventListener('click',e=>{
+  const el=e.target.closest('button,a');if(!el)return;
+  if(el.matches('.js-qo')){e.preventDefault();e.stopPropagation();openQO();return}
+  if(!$('#qo').classList.contains('on'))return;
+  const d=el.dataset;
+  if(el.matches('.js-qoclose')){closeQO();return}
+  if(d.qb){if(d.qb==='__new'){closeQO();wiz.step=0;renderWiz();$('#modal').classList.add('on');$('#scrim').classList.add('on');return}qo.brand=d.qb;renderQO();setTimeout(qoNext,220);return}
+  if(d.qt){if(qo.type!==d.qt){qo.colors=[];qo.qty={}}qo.type=d.qt;renderQO();setTimeout(qoNext,220);return}
+  if(d.qtone){qo.tone=d.qtone;qo.colors=[];qo.qty={};renderQO();setTimeout(qoNext,220);return}
+  if(d.qc){const i=qo.colors.indexOf(d.qc);i<0?qo.colors.push(d.qc):qo.colors.splice(i,1);renderQO();return}
+  if(d.qpre){const[id,k]=d.qpre.split(':');const p=P(id);qo.qty[id]=Math.round(k*p.pal*p.box);renderQO();return}
+  if(d.qk){qo.kit=d.qk;renderQO();return}
+  if(d.qs){qo.ship=d.qs;renderQO();return}
+  if(d.qd){qo.day=+d.qd;renderQO();return}
+  if(el.id==='qoBack'){if(qo.step){qo.step--;renderQO()}return}
+  if(el.id==='qoNext'){qoNext();return}
+  if(el.id==='qoToQuote'){qoLines().forEach(l=>{state.cart[l.p.id]={pal:Math.max(1,Math.ceil(l.pal)),brand:qo.brand};const b=state.brands.find(x=>x.id===qo.brand);if(b&&!b.items.find(i=>i.pid===l.p.id))b.items.push({pid:l.p.id,name:l.p.name})});closeQO();renderNav();location.hash='quote';render();toast('Added to your quote · name the colors for your brand');return}
+  if(el.id==='qoPO'){closeQO();toast('Saved as P.O. #PO-3117 · prices held 15 days');return}
+  if(el.id==='qoRep'){closeQO();toast('Sent to Carlos · he will confirm by WhatsApp');return}
+},true);
+document.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.qq){qo.qty[e.target.dataset.qq]=e.target.value;const pos=e.target.selectionStart;const id=e.target.dataset.qq;renderQO();const n=document.querySelector(`[data-qq="${id}"]`);n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}});
+document.addEventListener('keydown',e=>{if(!$('#qo').classList.contains('on'))return;if(e.key==='Escape'){closeQO();return}
+  if(e.key==='Enter'){e.preventDefault();qoNext();return}
+  if(e.target.tagName==='INPUT')return;
+  const k=e.key.toUpperCase();if(k.length===1&&k>='A'&&k<='H'){const opts=document.querySelectorAll('#qoQ .qo-opt');const o=opts[k.charCodeAt(0)-65];if(o)o.click()}});
+
+/* auth art planks */
+$('#authPlanks').innerHTML=PRODUCTS.slice(0,6).map((p,i)=>`<div style="background-image:url(${plank(p.c,160,420,i+2)});height:${92-i%3*8}%"></div>`).join('');
+applyI18n();
+if(location.hash&&location.hash!=='#'){enter();if(location.hash==='#quick-order')openQO()}
+</script>
+</body>
+</html>
